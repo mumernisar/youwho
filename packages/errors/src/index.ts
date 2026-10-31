@@ -1,3 +1,3 @@
-export * from './catalog.js';
-export * from './envelope.js';
-export * from './app-error.js';
+export * from './catalog';
+export * from './envelope';
+export * from './app-error';

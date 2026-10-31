@@ -1,11 +1,11 @@
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { fail } from '@youwho/errors';
 import { parseSpecialLabel, roomSlug } from '@youwho/core';
-import type { Db } from '../client.js';
-import { guard } from '../translate.js';
-import { datasets, seats, students } from '../schema.js';
-import type { LookupResult, Paper, RoomSeat, RoomSummary, RoomView } from '../types.js';
-import { colsToPosition, toDataset, toDatasetFull } from './mappers.js';
+import type { Db } from '../client';
+import { guard } from '../translate';
+import { datasets, seats, students } from '../schema';
+import type { LookupResult, Paper, RoomSeat, RoomSummary, RoomView } from '../types';
+import { colsToPosition, toDataset, toDatasetFull } from './mappers';
 
 export class SeatRepo {
   constructor(private readonly db: Db) {}
@@ -87,12 +87,12 @@ export class SeatRepo {
   rooms(datasetId: string): Promise<RoomSummary[]> {
     return guard(async () => {
       const rows = await this.db
-        .select({ room: seats.room, slots: sql<number>`count(distinct ${seats.slotKey})::int` })
+        .select({ room: seats.room, slotKeys: sql<string[]>`array_agg(distinct ${seats.slotKey} order by ${seats.slotKey})` })
         .from(seats)
         .where(eq(seats.datasetId, datasetId))
         .groupBy(seats.room)
         .orderBy(asc(seats.room));
-      return rows.map((r) => ({ room: r.room, slug: roomSlug(r.room), slots: r.slots }));
+      return rows.map((r) => ({ room: r.room, slug: roomSlug(r.room), slots: r.slotKeys.length, slotKeys: r.slotKeys }));
     });
   }
 

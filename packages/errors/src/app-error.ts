@@ -1,7 +1,14 @@
-import { ERRORS, type DetailsOf, type ErrorCode } from './catalog.js';
-import type { PublicError } from './envelope.js';
+import { ERRORS, type DetailsOf, type ErrorCode } from './catalog';
+import type { PublicError } from './envelope';
+
+/**
+ * Bundlers can load this module twice (server components and route handlers get separate copies),
+ * which breaks `instanceof`. Every AppError carries this brand so checks work across copies.
+ */
+const BRAND = Symbol.for('youwho.AppError');
 
 export class AppError<C extends ErrorCode = ErrorCode> extends Error {
+  readonly [BRAND] = true;
   readonly code: C;
   readonly def: (typeof ERRORS)[C];
   readonly details: DetailsOf<C>;
@@ -35,7 +42,8 @@ export const fail = <C extends ErrorCode>(
 };
 
 export const isAppError = (e: unknown, code?: ErrorCode): e is AppError =>
-  e instanceof AppError && (code === undefined || e.code === code);
+  typeof e === 'object' && e !== null && (e as Record<symbol, unknown>)[BRAND] === true &&
+  (code === undefined || (e as AppError).code === code);
 
 export const toAppError = (e: unknown): AppError =>
-  e instanceof AppError ? e : new AppError('INTERNAL', { cause: e });
+  isAppError(e) ? e : new AppError('INTERNAL', { cause: e });

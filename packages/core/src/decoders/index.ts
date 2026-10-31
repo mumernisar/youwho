@@ -1,8 +1,8 @@
-import type { PlanDecoder } from './types.js';
-import { decoderV1 } from './v1.js';
+import type { PlanDecoder } from './types';
+import { decoderV1 } from './v1';
 
-export type { PlanDecoder } from './types.js';
-export { parseSpecialLabel } from './v1.js';
+export type { PlanDecoder } from './types';
+export { parseSpecialLabel } from './v1';
 
 /** Oldest first. A new page format adds a decoder here; existing ones are never edited. */
 const DECODERS: readonly PlanDecoder[] = [decoderV1];

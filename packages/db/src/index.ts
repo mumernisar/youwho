@@ -1,19 +1,19 @@
-import type { Db } from './client.js';
-import { DatasetRepo } from './repos/dataset-repo.js';
-import { FeedbackRepo } from './repos/feedback-repo.js';
-import { JobRepo } from './repos/job-repo.js';
-import { RateLimitRepo, ScraperStatusRepo } from './repos/misc-repos.js';
-import { SeatRepo } from './repos/seat-repo.js';
+import type { Db } from './client';
+import { DatasetRepo } from './repos/dataset-repo';
+import { FeedbackRepo } from './repos/feedback-repo';
+import { JobRepo } from './repos/job-repo';
+import { RateLimitRepo, ScraperStatusRepo } from './repos/misc-repos';
+import { SeatRepo } from './repos/seat-repo';
 
-export * from './client.js';
-export * from './types.js';
-export * from './migrate.js';
-export { guard } from './translate.js';
-export { DatasetRepo, type SaveInput } from './repos/dataset-repo.js';
-export { SeatRepo } from './repos/seat-repo.js';
-export { JobRepo, type Job } from './repos/job-repo.js';
-export { FeedbackRepo, type ReportReason, type ReportRow } from './repos/feedback-repo.js';
-export { RateLimitRepo, ScraperStatusRepo, type RateResult } from './repos/misc-repos.js';
+export * from './client';
+export * from './types';
+export * from './migrate';
+export { guard } from './translate';
+export { DatasetRepo, type SaveInput } from './repos/dataset-repo';
+export { SeatRepo } from './repos/seat-repo';
+export { JobRepo, type Job } from './repos/job-repo';
+export { FeedbackRepo, type ReportReason, type ReportRow } from './repos/feedback-repo';
+export { RateLimitRepo, ScraperStatusRepo, type RateResult } from './repos/misc-repos';
 
 export interface Repos {
   datasets: DatasetRepo;

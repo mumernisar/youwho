@@ -1,8 +1,8 @@
 import { and, desc, eq, gt, sql } from 'drizzle-orm';
 import { fail } from '@youwho/errors';
-import type { Db } from '../client.js';
-import { guard } from '../translate.js';
-import { confirmations, datasets, reports } from '../schema.js';
+import type { Db } from '../client';
+import { guard } from '../translate';
+import { confirmations, datasets, reports } from '../schema';
 
 export type ReportReason = 'wrong_source' | 'outdated' | 'wrong_data' | 'other';
 

@@ -1,6 +1,6 @@
 import type { SeatPosition } from '@youwho/core';
-import type { datasets, seats } from '../schema.js';
-import type { Dataset, DatasetFull, DatasetMeta } from '../types.js';
+import type { datasets, seats } from '../schema';
+import type { Dataset, DatasetFull, DatasetMeta } from '../types';
 import type { Course } from '@youwho/core';
 
 type SeatCols = Pick<typeof seats.$inferInsert, 'posKind' | 'row' | 'col' | 'label'>;

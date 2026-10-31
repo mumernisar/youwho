@@ -1,4 +1,4 @@
-import type { SlotKey } from './types.js';
+import type { SlotKey } from './types';
 
 export const slotKey = (date: string, start: string): SlotKey => `${date}T${start}`;
 

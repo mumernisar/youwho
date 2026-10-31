@@ -30,7 +30,7 @@ export function createLogger(opts: { name: string; level?: string }): Logger {
         'ip',
         'voter',
         'voterId',
-        'name',
+        'studentName',
       ],
       censor: '[redacted]',
     },

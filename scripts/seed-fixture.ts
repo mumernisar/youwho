@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { parseRawPlan, selectDecoder, slugFromSourceUrl } from '@youwho/core';
 import { createDb, DatasetRepo } from '@youwho/db';
-import { scriptDb } from './db-url.js';
+import { scriptDb } from './db-url';
 
 const dir = fileURLToPath(new URL('../packages/core/fixtures/', import.meta.url));
 const text = readFileSync(dir + 'cs-fa26-mid.json', 'utf8');

@@ -74,6 +74,7 @@ export interface RoomSummary {
   room: string;
   slug: string;
   slots: number;
+  slotKeys: string[];
 }
 
 export interface SaveResult {

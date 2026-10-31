@@ -1,7 +1,7 @@
 import { and, asc, count, eq, lt, sql } from 'drizzle-orm';
-import type { Db } from '../client.js';
-import { guard, isUniqueViolation } from '../translate.js';
-import { jobs } from '../schema.js';
+import type { Db } from '../client';
+import { guard, isUniqueViolation } from '../translate';
+import { jobs } from '../schema';
 
 export interface Job {
   id: string;

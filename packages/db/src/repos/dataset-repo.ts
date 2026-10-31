@@ -1,10 +1,10 @@
 import { desc, eq, inArray, sql } from 'drizzle-orm';
 import type { DecodedPlan } from '@youwho/core';
-import type { Db } from '../client.js';
-import { guard } from '../translate.js';
-import { datasets, jobs, seats, students } from '../schema.js';
-import type { Dataset, DatasetFull, SaveResult } from '../types.js';
-import { positionToCols, toDataset, toDatasetFull } from './mappers.js';
+import type { Db } from '../client';
+import { guard } from '../translate';
+import { datasets, jobs, seats, students } from '../schema';
+import type { Dataset, DatasetFull, SaveResult } from '../types';
+import { positionToCols, toDataset, toDatasetFull } from './mappers';
 
 export interface SaveInput {
   sourceUrl: string;

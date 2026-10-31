@@ -63,7 +63,15 @@ export default tseslint.config(
   {
     files: ['apps/web/src/client/**/*.{ts,tsx}', 'apps/web/src/ui/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', ban(['@youwho/db', '@youwho/notify', '@youwho/config', '**/server/**'], 'Client code must not import db, notify, config or server code.')],
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            { group: ['@youwho/db', '@youwho/notify', '@youwho/config'], message: 'Client code must not import db, notify or config.' },
+            { group: ['**/server/**', '@/server/**'], allowTypeImports: true, message: 'Client code may only import types from server code.' },
+          ],
+        },
+      ],
     },
   },
   // packages never import apps

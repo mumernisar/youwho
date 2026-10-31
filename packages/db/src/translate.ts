@@ -1,4 +1,4 @@
-import { AppError, fail } from '@youwho/errors';
+import { fail, isAppError } from '@youwho/errors';
 
 const CONNECTION_CODES = new Set([
   'ECONNREFUSED',
@@ -32,7 +32,7 @@ export async function guard<T>(run: () => Promise<T>): Promise<T> {
   try {
     return await run();
   } catch (e) {
-    if (e instanceof AppError) throw e;
+    if (isAppError(e)) throw e;
     const code = dbErrorCode(e);
     if ((code && (CONNECTION_CODES.has(code) || code.startsWith('08'))) || /fetch failed|timeout/i.test(String((e as Error)?.message))) {
       return fail('DB_UNAVAILABLE', { cause: e });

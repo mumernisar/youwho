@@ -1,4 +1,4 @@
-import type { ErrorCode } from './catalog.js';
+import type { ErrorCode } from './catalog';
 
 export interface PublicError {
   code: ErrorCode | 'NETWORK_ERROR';

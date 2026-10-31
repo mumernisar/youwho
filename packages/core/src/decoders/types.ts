@@ -1,5 +1,5 @@
-import type { RawPlan } from '../schema.js';
-import type { DecodedPlan } from '../types.js';
+import type { RawPlan } from '../schema';
+import type { DecodedPlan } from '../types';
 
 export interface PlanDecoder {
   version: string; // "v1"

@@ -1,7 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
-import type { Db } from '../client.js';
-import { guard } from '../translate.js';
-import { rateLimits, scraperStatus } from '../schema.js';
+import type { Db } from '../client';
+import { guard } from '../translate';
+import { rateLimits, scraperStatus } from '../schema';
 
 export interface RateResult {
   allowed: boolean;

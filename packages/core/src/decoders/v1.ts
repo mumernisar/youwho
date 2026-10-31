@@ -1,7 +1,7 @@
 import { fail } from '@youwho/errors';
-import type { RawPlan } from '../schema.js';
-import type { Course, DecodedPlan, DecodedSeat, SeatPosition } from '../types.js';
-import type { PlanDecoder } from './types.js';
+import type { RawPlan } from '../schema';
+import type { Course, DecodedPlan, DecodedSeat, SeatPosition } from '../types';
+import type { PlanDecoder } from './types';
 
 const B = (s: string): number => parseInt(s, 36);
 
