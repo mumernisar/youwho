@@ -14,6 +14,10 @@ Phases follow spec section 10. Only big phases are logged here.
 - `packages/config`: zod env schemas and `loadWebEnv` / `loadScraperEnv` (print every problem, exit 1); pino logger with redaction.
 - Checked: missing variables print a readable list and exit 1; `toPublic` on a wrapped unknown error returns `INTERNAL` with no cause.
 
-## Next: Phase 2 — `core`
-Schema, decoder v1 and registry, URL/reg/slot/room helpers, `check:decoder`.
-Notes: the web `ADMIN_TOKEN` minimum length (16) and `HASH_SALT`/`SESSION_SECRET` minimum (32) are my choices; the spec only fixes the 32-byte minimum for `SCRAPER_SECRET`.
+## Phase 2 — `core`: done
+- `RawPlanSchema` + `parseRawPlan` (5 MB cap, JSON, shape, group-row format), decoder v1 and registry (`selectDecoder`), `normalizeReg`, `canonicalizeSourceUrl`, `slugFromSourceUrl`, slot keys, room slugs, seat labels, `roomDims`.
+- `pnpm check:decoder`: 2,533 students with seats, 13,916 seats, 1 TBA-only, hash of the page script is the registered v1 hash, four hand-picked records match.
+- Checked: a corrupted course index fails with `DATA_DECODE_FAILED` naming the student.
+- Finding: three pairs of slots share a date and start time but differ in end time (80 vs 90 minute papers; e.g. `2026-11-03T08:30`). They use the same rooms with no seat collisions, so they are one physical session. Slot key stays `date + start` (the spec); the DB phase adds an `end_time` column to `seats` so a paper keeps its own end time.
+
+## Next: Phase 3 — `db`
