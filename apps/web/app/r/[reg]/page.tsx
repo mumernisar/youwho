@@ -12,7 +12,7 @@ import { ArrowRight, Chair, Clock, Door, Calendar } from '@/ui/icons';
 import { PageNav } from '@/ui/page-nav';
 import { assignHues, dayHue, hueStyle, initials } from '@/ui/palette';
 import { SourceNotice } from '@/ui/source-notice';
-import { dateParts, fmtDate, fmtDateLong, fmtTime, seatText } from '@/ui/format';
+import { dateParts, fmtDate, fmtTime, seatText } from '@/ui/format';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Your papers', robots: { index: false } };
