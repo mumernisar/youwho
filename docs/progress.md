@@ -52,4 +52,10 @@ Phases follow spec section 10. Only big phases are logged here.
 - Known rough edge: two simultaneous submits of one URL each use one of the requester's three hourly slots, even though they share a job.
 - Not checked in a real browser: the sheet and toast interactions (typecheck, lint and the API behind them are verified).
 
-## Next: Phase 7 — Confirmations and reports
+## Phase 7 — Confirmations and reports: done
+- `POST /api/datasets/[slug]/confirm` (toggle, 30 per voter per hour) and `POST /api/datasets/[slug]/reports` (10 per IP per hour). Voter id is a random UUID in the `yw_vid` cookie (httpOnly, SameSite=Lax, one year); only `sha256(HASH_SALT + id)` is stored. Counters change in the same transaction as the row.
+- One report per voter per dataset per day: a second report in a day replaces the first and does not email again. A new report sends a `dataset.reported` event through the notifier (console for now).
+- UI: Looks right toggle with optimistic update and rollback, Report sheet (four reasons, note up to 500 characters with counter), shown on the department page, room view and roll results.
+- Checked with two cookie jars: toggles from two voters keep the count correct (1, 2, 1, 2) and the DB agrees; the department page renders the voter's own state on the server; a bad reason gives `INVALID_INPUT`; an unknown department gives `DATASET_NOT_FOUND`; reports appear in the console notifier output with the right reason and counts.
+
+## Next: Phase 8 — Admin and notifications

@@ -68,7 +68,7 @@ export class FeedbackRepo {
           .limit(1);
         if (prior) {
           await tx.update(reports).set({ reason: input.reason, note: input.note, createdAt: input.now }).where(eq(reports.id, prior.id));
-          return { reportId: prior.id, dataset: { slug: ds.slug, label: ds.label, sourceUrl: ds.sourceUrl }, reports: ds.reportCount, confirms: ds.confirmCount };
+          return { reportId: prior.id, isNew: false, dataset: { slug: ds.slug, label: ds.label, sourceUrl: ds.sourceUrl }, reports: ds.reportCount, confirms: ds.confirmCount };
         }
         const [row] = await tx
           .insert(reports)
@@ -79,7 +79,7 @@ export class FeedbackRepo {
           .set({ reportCount: sql`${datasets.reportCount} + 1` })
           .where(eq(datasets.id, ds.id))
           .returning({ reports: datasets.reportCount });
-        return { reportId: row!.id, dataset: { slug: ds.slug, label: ds.label, sourceUrl: ds.sourceUrl }, reports: upd!.reports, confirms: ds.confirmCount };
+        return { reportId: row!.id, isNew: true, dataset: { slug: ds.slug, label: ds.label, sourceUrl: ds.sourceUrl }, reports: upd!.reports, confirms: ds.confirmCount };
       }),
     );
   }

@@ -242,6 +242,9 @@ importers:
       '@youwho/errors':
         specifier: workspace:*
         version: link:../../packages/errors
+      '@youwho/notify':
+        specifier: workspace:*
+        version: link:../../packages/notify
       next:
         specifier: 16.4.3
         version: 16.4.3(@types/node@26.6.6)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)

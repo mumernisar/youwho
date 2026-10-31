@@ -15,6 +15,7 @@
     "@youwho/core": "workspace:*",
     "@youwho/db": "workspace:*",
     "@youwho/errors": "workspace:*",
+    "@youwho/notify": "workspace:*",
     "next": "16.4.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",

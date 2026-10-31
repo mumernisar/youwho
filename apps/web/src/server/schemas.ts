@@ -15,6 +15,12 @@ export const jobBody = z.object({
   url: z.string().trim().min(1).max(500),
   kind: z.enum(['add', 'refresh']).optional(),
 });
+export const REPORT_REASONS = ['wrong_source', 'outdated', 'wrong_data', 'other'] as const;
+export const reportBody = z.object({
+  slug: z.string().min(1).max(100),
+  reason: z.enum(REPORT_REASONS),
+  note: z.string().trim().max(500).optional(),
+});
 export const idParam = z.object({ id: z.uuid() });
 
 // ---- view types ----

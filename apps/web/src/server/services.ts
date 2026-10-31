@@ -3,8 +3,10 @@ import { createHash, randomUUID } from 'node:crypto';
 import { createRepos, type DbHandle, type Repos } from '@youwho/db';
 import { createDb } from '@youwho/db/client';
 import { createLogger, loadWebEnv, type Logger, type WebEnv } from '@youwho/config';
+import { createNotifier } from '@youwho/notify';
 import { DatasetService } from './services/datasets';
 import { LookupService } from './services/lookup';
+import { FeedbackService } from './services/feedback';
 import { JobService } from './services/jobs';
 import { RoomService } from './services/rooms';
 import { createScraperClient, type ScraperClient } from './scraper-client';
@@ -20,6 +22,7 @@ export interface Services {
   rooms: RoomService;
   datasets: DatasetService;
   jobs: JobService;
+  feedback: FeedbackService;
   scraper: ScraperClient;
 }
 
@@ -42,6 +45,7 @@ export function createServices(env: WebEnv): Services {
     newId: randomUUID,
     datasets,
     scraper,
+    feedback: new FeedbackService({ repos, notifier: createNotifier(env, log), now }),
     jobs: new JobService({ repos, datasets, scraper, now }),
     lookup: new LookupService(repos, datasets),
     rooms: new RoomService(repos, datasets),
