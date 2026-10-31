@@ -49,10 +49,10 @@ const has = (reg: string, want: Want, label: string) => {
   );
 };
 
-has('FA21-BAI-011', { slot: '2026-11-03T14:30', course: 'MGT101', section: 'F', room: 'G-05', position: { kind: 'grid', row: 1, col: 3 } }, 'ordinary seat');
-has('FA21-BAI-019', { slot: '2026-11-07T08:30', course: 'CSC322', section: 'BCS-5B', room: 'G-06', position: { kind: 'grid', row: 3, col: 5 } }, 'section override');
-has('FA22-BDS-024', { slot: '2026-11-05T14:30', course: 'CSC301', section: 'BSE-5B', room: 'Clash Room', position: { kind: 'clash', label: 'CR-05', order: 2, start: '15:50', end: '17:10' } }, 'clash room');
-has('FA21-BCT-013', { slot: '2026-11-05T13:00', course: 'MGT210', section: 'BCT-4', room: 'G-07', position: { kind: 'extra', n: 1 } }, 'extra chair');
+has('FA21-BAI-011', { slot: '2026-11-03T14:30-15:50', course: 'MGT101', section: 'F', room: 'G-05', position: { kind: 'grid', row: 1, col: 3 } }, 'ordinary seat');
+has('FA21-BAI-019', { slot: '2026-11-07T08:30-09:50', course: 'CSC322', section: 'BCS-5B', room: 'G-06', position: { kind: 'grid', row: 3, col: 5 } }, 'section override');
+has('FA22-BDS-024', { slot: '2026-11-05T14:30-15:50', course: 'CSC301', section: 'BSE-5B', room: 'Clash Room', position: { kind: 'clash', label: 'CR-05', order: 2, start: '15:50', end: '17:10' } }, 'clash room');
+has('FA21-BCT-013', { slot: '2026-11-05T13:00-14:20', course: 'MGT210', section: 'BCT-4', room: 'G-07', position: { kind: 'extra', n: 1 } }, 'extra chair');
 
 if (problems.length > 0) {
   console.error(`check:decoder failed:\n${problems.map((p) => `  - ${p}`).join('\n')}`);

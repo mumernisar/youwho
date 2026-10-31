@@ -1,4 +1,5 @@
 import { fail } from '@youwho/errors';
+import { slotKey } from '../keys';
 import type { RawPlan } from '../schema';
 import type { Course, DecodedPlan, DecodedSeat, SeatPosition } from '../types';
 import type { PlanDecoder } from './types';
@@ -124,7 +125,7 @@ export const decoderV1: PlanDecoder = {
     return {
       meta: {
         stamp: raw.stamp,
-        slots: raw.slots.map(([date, start, end]) => ({ key: `${date}T${start}`, date, start, end })),
+        slots: raw.slots.map(([date, start, end]) => ({ key: slotKey(date, start, end), date, start, end })),
         courses: raw.kinds.map(([code, title, teacher]) => ({ code, title, teacher: teacher || null })),
         sections: raw.cls,
         rooms: raw.rooms,

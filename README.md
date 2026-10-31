@@ -51,7 +51,7 @@ Everything runs on free tiers. There is no CI: each platform builds from `main`,
 1. **Database (Neon).** Create a project and copy the pooled connection string. Run `pnpm db:migrate --neon` from your machine before merging any schema change.
 2. **Scraper (Render).** New Blueprint from this repo (`render.yaml`), or a Docker web service with the root `Dockerfile`. Set `DATABASE_URL`, `SCRAPER_SECRET`, `RESEND_API_KEY`, `OWNER_EMAIL`, `NOTIFY_FROM` and `SITE_URL`. Health check path: `/health`.
 3. **Web (Vercel).** Import the repo with root directory `apps/web` and "Include source files outside of the Root Directory" enabled. Set every web variable above; `SCRAPER_URL` is the Render URL.
-4. **Email (Resend).** Without a verified domain, Resend only delivers to the account owner's address, so `OWNER_EMAIL` must be that address and `NOTIFY_FROM` must be `youwho <onboarding@resend.dev>`. To email anyone else, verify a domain and change `NOTIFY_FROM`.
+4. **Email (Resend).** Without a verified domain, Resend only delivers to the account owner's address, so `OWNER_EMAIL` must be that address and `NOTIFY_FROM` must be `youwho <onboarding@resend.dev>`. With a verified domain (this project uses `umernisar.dev`) use `youwho <youwho@umernisar.dev>` and any recipient.
 5. **Check it.** Add a department from the live site and watch it reach "Added"; look up a roll number; sign in at `/admin`.
 
 The Render free instance sleeps after 15 minutes; the first job after a sleep shows "Waking up scraper…" for up to a minute.

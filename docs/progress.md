@@ -18,7 +18,7 @@ Phases follow spec section 10. Only big phases are logged here.
 - `RawPlanSchema` + `parseRawPlan` (5 MB cap, JSON, shape, group-row format), decoder v1 and registry (`selectDecoder`), `normalizeReg`, `canonicalizeSourceUrl`, `slugFromSourceUrl`, slot keys, room slugs, seat labels, `roomDims`.
 - `pnpm check:decoder`: 2,533 students with seats, 13,916 seats, 1 TBA-only, hash of the page script is the registered v1 hash, four hand-picked records match.
 - Checked: a corrupted course index fails with `DATA_DECODE_FAILED` naming the student.
-- Finding: three pairs of slots share a date and start time but differ in end time (80 vs 90 minute papers; e.g. `2026-11-03T08:30`). They use the same rooms with no seat collisions, so they are one physical session. Slot key stays `date + start` (the spec); the DB phase adds an `end_time` column to `seats` so a paper keeps its own end time.
+- Finding: three pairs of slots share a date and start time but differ in end time (80 vs 90 minute papers). I first merged them into one session, which was wrong: a room view must show only the papers of its own slot. The slot key is now `date T start-end` (for example `2026-11-04T08:30-09:50`); see "Correction" at the end.
 
 ## Phase 3 — `db`: done
 - Drizzle schema + generated migration for every table in section 4 plus `rate_limits` and `scraper_status`. `seats` also stores `end_time`, and `room` is the room name (not an index).
@@ -71,3 +71,8 @@ Phases follow spec section 10. Only big phases are logged here.
 - Lighthouse (mobile, production build): home 100 / 100 / 100 / 100; room view 100 performance and 100 accessibility in Paper and Chalkboard. Fixed a real finding on the way: the seat grid header cells now have proper ARIA header roles.
 - The add sheet is lazy-loaded; home JavaScript is still about 146 KB gzipped because the Next.js and React baseline is about 118 KB (see spec section 13).
 - Not done (needs your accounts): deploying to Vercel and Render. Steps are in the README. Real-device checks (360 px phone, pinch-zoom, bottom sheet gestures) are also left for you.
+
+## Correction after review: slot keys and sender
+- Slot keys now include the end time (`2026-11-04T08:30-09:50`). Papers that start together but end at different times are separate sessions, so a room view shows only its own slot (room 106 on 4 Nov: 47 seats at 8:30–9:50 and 3 seats at 8:30–10:00, previously one view of 50). Old-style links (`…T08:30`) now give 404.
+- `DATA_REVISION` (in `packages/core`) is mixed into `data_hash` so datasets saved with the old keys are replaced on their next refresh; local and Neon were re-seeded.
+- Owner emails are sent from `youwho <youwho@umernisar.dev>`; Resend accepted that domain (`mumernisar.dev` is not verified).

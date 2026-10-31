@@ -8,7 +8,7 @@ export const slugParam = z.object({ slug: z.string().min(1).max(100) });
 export const roomParams = z.object({
   slug: z.string().min(1).max(100),
   room: z.string().min(1).max(60),
-  slotKey: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/),
+  slotKey: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}-\d{2}:\d{2}$/),
 });
 
 export const jobBody = z.object({

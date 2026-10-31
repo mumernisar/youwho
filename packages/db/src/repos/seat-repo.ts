@@ -1,6 +1,6 @@
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { fail } from '@youwho/errors';
-import { parseSpecialLabel, roomSlug } from '@youwho/core';
+import { parseSlotKey, parseSpecialLabel, roomSlug } from '@youwho/core';
 import type { Db } from '../client-types';
 import { guard } from '../translate';
 import { datasets, seats, students } from '../schema';
@@ -27,12 +27,12 @@ export class SeatRepo {
         const papers: Paper[] = seatRows
           .filter((s) => s.datasetId === dataset.id)
           .map((s) => {
-            const slot = full.meta.slots.find((x) => x.key === s.slotKey);
+            const slot = parseSlotKey(s.slotKey);
             return {
               slotKey: s.slotKey,
-              date: slot?.date ?? s.slotKey.slice(0, 10),
-              start: slot?.start ?? s.slotKey.slice(11),
-              end: s.endTime,
+              date: slot.date,
+              start: slot.start,
+              end: slot.end,
               course: full.meta.courses[s.course]!,
               room: s.room,
               roomSlug: roomSlug(s.room),
@@ -70,12 +70,11 @@ export class SeatRepo {
         name,
         section: full.meta.sections[s.section] ?? '',
       }));
-      const slot = full.meta.slots.find((x) => x.key === opts.slotKey)!;
-      const end = rows.map((r) => r.s.endTime).sort().at(-1) ?? slot.end;
+      const slot = parseSlotKey(opts.slotKey);
       return {
         dataset: toDataset(row),
         room,
-        slot: { key: slot.key, date: slot.date, start: slot.start, end },
+        slot: { key: opts.slotKey, ...slot },
         dims: (full.meta.roomDims as Record<string, { rows: number; cols: number }>)[room] ?? { rows: 0, cols: 0 },
         courses: full.meta.courses,
         seats: roomSeats,

@@ -198,7 +198,7 @@ export function selectDecoder(logicHash: string): { decoder: PlanDecoder; known:
 ### Normalized types
 
 ```ts
-type SlotKey = string;                   // "2026-11-03T14:30", stable across re-scrapes
+type SlotKey = string;                   // "2026-11-03T14:30-15:50", stable across re-scrapes
 interface Slot { key: SlotKey; date: string; start: string; end: string }
 interface Course { code: string; title: string; teacher: string | null }
 type SeatPosition =
@@ -584,7 +584,7 @@ Pages render on the server by calling services directly; the API exists for what
 | `/` | Roll input, department board, Add a department |
 | `/r/[reg]` | Your papers across departments |
 | `/d/[slug]` | Department page: source notice, counts, rooms, Refresh |
-| `/d/[slug]/[room]/[slotKey]?me=[reg]` | Room view. `room` is the room name lowercased with spaces as dashes (`g-05`, `clash-room`); `slotKey` is `2026-11-03T14:30` |
+| `/d/[slug]/[room]/[slotKey]?me=[reg]` | Room view. `room` is the room name lowercased with spaces as dashes (`g-05`, `clash-room`); `slotKey` is `2026-11-03T14:30-15:50` |
 | `/admin` | Owner page |
 
 A registration number in the path is normalized (uppercase, `CIIT/` and `/ISB` stripped, dashes inserted, roll padded to 3 digits) and redirects to the canonical form when it differs.
@@ -859,13 +859,15 @@ published on Google Sites. Full spec: docs/spec.md (section numbers below refer 
 
 Recorded while building; the behaviour below is what is implemented.
 
-- `seats` has an extra `end_time` column and `room` stores the room name, not an index. Slots that share a date and start time (80 and 90 minute papers) are one session with one slot key, and each seat keeps its own end time.
+- `seats` has an extra `end_time` column and `room` stores the room name, not an index. The slot key includes the end time (`2026-11-03T08:30-09:50`), because papers that start together but end at different times (80 and 90 minutes) are different sessions; a room view shows only its own slot. Section 4's `SlotKey` example and section 8's `slotKey` path are updated to match.
+- `DATA_REVISION` in `packages/core` is mixed into `data_hash`; bump it when decoded output changes shape so existing datasets re-save on their next refresh.
 - New optional env variable `SITE_URL` (links in owner emails). Scraper-only dev variables: `FIXTURE_DIR`, `FIXTURE_DELAY_MS`, `DEV_ALLOW_LOCALHOST`.
 - Themes use a plain cookie and CSS variables instead of `next-themes`.
 - `@youwho/db` exposes the drivers as subpaths (`/client`, `/postgres`, `/neon`) so the scraper never loads the Neon driver.
 - `AppError` carries a brand checked by `isAppError`, because bundlers can load the errors package twice and break `instanceof`.
 - Server components do not throw `AppError`; `loadPage()` returns the public error so the catalog copy survives production builds.
 - Job `stage` values are `opening`, `extracting`, `checking` and `saving:<seats>`.
+- Owner emails are sent from `youwho <youwho@umernisar.dev>` (verified Resend domain) to the owner address.
 - `PlaywrightPageSource` gives up with `SOURCE_NO_DATA` after 45 seconds of not finding the data.
 - Seat details use one Radix dialog (bottom sheet on phones, centred card on desktop) instead of a separate popover.
 - Course textures are CSS gradients rather than SVG patterns.

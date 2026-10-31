@@ -1,4 +1,4 @@
-export type SlotKey = string; // "2026-11-03T14:30", stable across re-scrapes
+export type SlotKey = string; // "2026-11-03T14:30-15:50", stable across re-scrapes
 
 export interface Slot {
   key: SlotKey;

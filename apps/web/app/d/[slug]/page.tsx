@@ -45,7 +45,7 @@ export default async function Department({ params }: { params: Promise<{ slug: s
                 {r.slotKeys.map((k) => (
                   <li key={k}>
                     <Link href={`/d/${dataset.slug}/${r.slug}/${encodeURIComponent(k)}`} className="inline-flex min-h-6 items-center rounded border border-rule px-2 py-1 font-mono text-xs hover:border-ink">
-                      {fmtDate(k.slice(0, 10))} {fmtTime(k.slice(11))}
+                      {fmtDate(k.slice(0, 10))} {fmtTime(k.slice(11, 16))}–{fmtTime(k.slice(17))}
                     </Link>
                   </li>
                 ))}
