@@ -854,3 +854,19 @@ published on Google Sites. Full spec: docs/spec.md (section numbers below refer 
 - Domain types live in `core/types.ts`; view types in `apps/web/src/server/schemas.ts`. Never pass Drizzle rows to React.
 - Prefer `async`/`await` with explicit `AbortSignal` parameters for anything that can take longer than a second.
 - Dates are ISO strings across boundaries; formatting for display happens only in the UI layer, in `Asia/Karachi` time.
+
+## 13. Implementation notes (changes from this spec)
+
+Recorded while building; the behaviour below is what is implemented.
+
+- `seats` has an extra `end_time` column and `room` stores the room name, not an index. Slots that share a date and start time (80 and 90 minute papers) are one session with one slot key, and each seat keeps its own end time.
+- New optional env variable `SITE_URL` (links in owner emails). Scraper-only dev variables: `FIXTURE_DIR`, `FIXTURE_DELAY_MS`, `DEV_ALLOW_LOCALHOST`.
+- Themes use a plain cookie and CSS variables instead of `next-themes`.
+- `@youwho/db` exposes the drivers as subpaths (`/client`, `/postgres`, `/neon`) so the scraper never loads the Neon driver.
+- `AppError` carries a brand checked by `isAppError`, because bundlers can load the errors package twice and break `instanceof`.
+- Server components do not throw `AppError`; `loadPage()` returns the public error so the catalog copy survives production builds.
+- Job `stage` values are `opening`, `extracting`, `checking` and `saving:<seats>`.
+- `PlaywrightPageSource` gives up with `SOURCE_NO_DATA` after 45 seconds of not finding the data.
+- Seat details use one Radix dialog (bottom sheet on phones, centred card on desktop) instead of a separate popover.
+- Course textures are CSS gradients rather than SVG patterns.
+- The home page ships about 146 KB of gzipped JavaScript, of which about 118 KB is the Next.js and React baseline, so the 100 KB target in section 9 is not reachable with this stack. The add sheet is loaded on demand. Lighthouse (mobile) scores 100 for performance, accessibility, best practices and SEO.

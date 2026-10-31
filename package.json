@@ -13,7 +13,8 @@
     "check:decoder": "tsx scripts/check-decoder.ts",
     "seed:fixture": "tsx --env-file=.env scripts/seed-fixture.ts",
     "db:generate": "pnpm --filter @youwho/db db:generate",
-    "db:migrate": "tsx --env-file=.env scripts/migrate.ts"
+    "db:migrate": "tsx --env-file=.env scripts/migrate.ts",
+    "dev": "docker compose up -d && pnpm --parallel --filter @youwho/web --filter @youwho/scraper dev"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

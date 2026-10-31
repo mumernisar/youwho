@@ -65,4 +65,9 @@ Phases follow spec section 10. Only big phases are logged here.
 - Checked: unauthenticated and tampered cookies get `UNAUTHORIZED`; six wrong tokens give five `UNAUTHORIZED` then `RATE_LIMITED`; delete removes the department from the board, empties its students and fails its queued job with `DATASET_NOT_FOUND`; sign out invalidates the session; one real email per event type was delivered through Resend (added, updated, reported, unknown decoder) and the scraper sent its own `dataset.added` email; the cap sends 20 then one digest of the remaining 5.
 - Resend note: with no verified domain, Resend only delivers to the account owner's address, so `OWNER_EMAIL` is `dev.umernisar@gmail.com` and `NOTIFY_FROM` is `youwho <onboarding@resend.dev>`. To email another address, verify a domain at resend.com/domains and change `NOTIFY_FROM`.
 
-## Next: Phase 9 — Polish and launch
+## Phase 9 — Polish and launch: done, except deployment
+- Star on GitHub button with the live count (`/api/github`, cached one hour, null when GitHub is unreachable; hidden on `/admin`), offline bar, favicon, theme colour, README with setup and deploy steps, `CLAUDE.md`, root `pnpm dev`, spec section 13 listing every change from the original spec.
+- Themes (Paper, Chalkboard, Night) render server-side from the `yw_theme` cookie with no flash; Night is also the default under a dark system setting. Reduced motion is respected in CSS.
+- Lighthouse (mobile, production build): home 100 / 100 / 100 / 100; room view 100 performance and 100 accessibility in Paper and Chalkboard. Fixed a real finding on the way: the seat grid header cells now have proper ARIA header roles.
+- The add sheet is lazy-loaded; home JavaScript is still about 146 KB gzipped because the Next.js and React baseline is about 118 KB (see spec section 13).
+- Not done (needs your accounts): deploying to Vercel and Render. Steps are in the README. Real-device checks (360 px phone, pinch-zoom, bottom sheet gestures) are also left for you.

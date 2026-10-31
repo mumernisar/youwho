@@ -7,6 +7,7 @@ import { createNotifier } from '@youwho/notify';
 import { DatasetService } from './services/datasets';
 import { LookupService } from './services/lookup';
 import { AdminService } from './services/admin';
+import { GithubService } from './services/github';
 import { FeedbackService } from './services/feedback';
 import { JobService } from './services/jobs';
 import { RoomService } from './services/rooms';
@@ -25,6 +26,7 @@ export interface Services {
   jobs: JobService;
   feedback: FeedbackService;
   admin: AdminService;
+  github: GithubService;
   scraper: ScraperClient;
 }
 
@@ -48,6 +50,7 @@ export function createServices(env: WebEnv): Services {
     datasets,
     scraper,
     feedback: new FeedbackService({ repos, notifier: createNotifier(env, log), now }),
+    github: new GithubService({ repo: env.GITHUB_REPO, token: env.GITHUB_TOKEN, log, now }),
     admin: new AdminService({ repos, adminToken: env.ADMIN_TOKEN, sessionSecret: env.SESSION_SECRET, hash, now }),
     jobs: new JobService({ repos, datasets, scraper, now }),
     lookup: new LookupService(repos, datasets),

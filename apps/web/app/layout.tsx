@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from 'next';
 import { cookies } from 'next/headers';
 import { IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google';
 import { AddDepartmentProvider } from '@/ui/add-department';
+import { getServices } from '@/server/services';
 import { Header } from '@/ui/header';
+import { OfflineBar } from '@/ui/offline-bar';
 import './globals.css';
 
 const sans = IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-plex-sans', display: 'swap' });
@@ -14,7 +16,11 @@ export const metadata: Metadata = {
 };
 
 // Pinch-zoom stays enabled.
-export const viewport: Viewport = { width: 'device-width', initialScale: 1 };
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: [{ media: '(prefers-color-scheme: light)', color: '#f7f3ea' }, { media: '(prefers-color-scheme: dark)', color: '#0c0d0e' }],
+};
 
 const THEMES = ['paper', 'chalkboard', 'night'];
 
@@ -25,7 +31,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" className={`${sans.variable} ${mono.variable}`} {...(theme ? { 'data-theme': theme } : {})}>
       <body className="font-sans antialiased">
         <AddDepartmentProvider>
-          <Header theme={theme} />
+          <OfflineBar />
+          <Header theme={theme} repoUrl={getServices().github.url} />
           <main className="mx-auto w-full max-w-3xl px-4 pb-24">{children}</main>
         </AddDepartmentProvider>
       </body>

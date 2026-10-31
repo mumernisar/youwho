@@ -82,12 +82,12 @@ export function RoomGrid({ model, me, roomName }: { model: RoomModel; me: string
           <div className="-mx-4 overflow-x-auto sm:mx-0">
             <div role="grid" aria-label={`Seats in room ${roomName}`} className="room-grid" onKeyDown={onKey}>
               <div role="row" className="contents">
-                <span aria-hidden />
-                {Array.from({ length: dims.cols }, (_, i) => <span key={i} className="room-axis" aria-hidden>{i + 1}</span>)}
+                <span role="columnheader" aria-label="Row" className="room-axis" />
+                {Array.from({ length: dims.cols }, (_, i) => <span key={i} role="columnheader" aria-label={`Seat ${i + 1}`} className="room-axis">{i + 1}</span>)}
               </div>
               {Array.from({ length: dims.rows }, (_, r) => (
                 <div role="row" key={r} className="contents">
-                  <span className="room-axis" aria-hidden>{r + 1}</span>
+                  <span role="rowheader" aria-label={`Row ${r + 1}`} className="room-axis">{r + 1}</span>
                   {Array.from({ length: dims.cols }, (_, c) => {
                     const s = cells.get(`${r + 1}:${c + 1}`);
                     if (!s) return <span key={c} role="gridcell" className="seat-slot" aria-hidden />;
