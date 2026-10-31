@@ -14,7 +14,7 @@ export interface Course {
 }
 
 export type SeatPosition =
-  | { kind: 'grid'; row: number; col: number } // row from front, col from left, 1-based
+  | { kind: 'grid'; row: number; col: number } // row from front, col from the left as the source counts it, 1-based
   | { kind: 'extra'; n: number }
   | { kind: 'clash'; label: string; order: 1 | 2 | 3; start: string; end: string }
   | { kind: 'other'; label: string };

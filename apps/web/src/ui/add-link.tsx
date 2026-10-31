@@ -10,7 +10,7 @@ export function AddDepartmentButton({ variant = 'secondary' }: { variant?: 'seco
       <button
         type="button"
         onClick={openAdd}
-        className="flex min-h-28 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line p-5 text-ink-2 transition hover:border-brand hover:bg-brand-soft hover:text-brand"
+        className="flex h-full min-h-28 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-line p-5 text-ink-2 transition hover:border-brand hover:bg-brand-soft hover:text-brand"
       >
         <Plus className="h-6 w-6" />
         <span className="font-semibold">Add your department</span>

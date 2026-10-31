@@ -1,6 +1,6 @@
 import type { SeatPosition } from './types';
 
-/** Human label: "R3-5" is row 3 from the front, seat 5 from the left. */
+/** Human label: "R3-5" is row 3 from the front, seat 5 from the left (whose left: spec section 1). */
 export function seatLabel(p: SeatPosition): string {
   switch (p.kind) {
     case 'grid':

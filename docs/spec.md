@@ -35,7 +35,7 @@ This document is the build spec for Claude Code. Each section is self-contained 
 - Name: **youwho**, always lowercase.
 - Hosting must stay free: web on Vercel Hobby, scraper on Render free, database on Neon free, email on Resend free.
 - Each scrape job may run up to **3 minutes**. A job always ends as done or failed; it never stays stuck.
-- Seat `R3-5` means row 3 counted from the front of the room, seat 5 counted from the left. All room drawing follows this.
+- Seat `R3-5` means row 3 counted from the front of the room, seat 5 counted from the left (the source page's own wording). The page does not say whose left; we read it as the invigilator's, standing at the front facing the students, so seat 1 is on the students' right. The drawing keeps the front at the top (as a student sees the room), so seat 1 is on the right of the screen, with "Front left" and "Back left" corner markers on that side. Directions such as "2 seats to your left" are from the student's seat facing the front. `SEATS_COUNT_FROM` in `apps/web/src/ui/room-model.ts` switches to the student's left if a real room shows otherwise.
 
 ### Reference sample
 
@@ -520,12 +520,12 @@ The notice has two actions beside it: **Looks right · 12** and **Report**. On t
 - One per voter per dataset, enforced by the `(dataset_id, voter_hash)` primary key.
 - The voter id is a random UUID in an httpOnly, SameSite=Lax cookie `yw_vid` that lasts one year. Store only `sha256(HASH_SALT + vid)`.
 - `confirm_count` changes in the same transaction as the row. The UI updates optimistically and rolls back on error.
-- Limit: 30 toggles per voter per hour.
+- Limit: 30 toggles per voter per hour, and at most 5 new confirmations per IP address per dataset per day (removing one does not count). A cap, not one per IP, because campus wifi and mobile carriers share addresses.
 
 ### Reports
 
 - The Report sheet asks for a reason (Wrong source page, Out of date, Seats look wrong, Something else) and an optional note up to 500 characters.
-- One report per voter per dataset per day; a second one within a day updates the first. IP limit: 10 reports per hour.
+- One report per voter per dataset per day; a second one within a day updates the first. IP limits: 10 reports per hour, and 3 per IP address per dataset per day.
 - Each report increments `report_count` and emails the owner. Looks right votes never send email.
 - The board never hides or reorders a department because of reports. The owner decides.
 
@@ -657,11 +657,11 @@ IBM Plex Sans for text and IBM Plex Mono for data, both via `next/font` with sys
 
 | Theme | Background | Text | Accent (your seat) |
 | --- | --- | --- | --- |
-| Paper (default light) | warm off-white | near-black ink | deep blue |
-| Chalkboard (dark) | dark slate green | chalk off-white | warm yellow |
-| Night (dark, low contrast) | near-black | soft grey | soft teal |
+| Sand (default) | warm off-white | dark brown ink | amber |
+| Day (light) | cool grey | navy ink | amber |
+| Dusk (dark) | deep navy | off-white | amber |
 
-All colours are CSS variables on `:root[data-theme=…]`; components never hard-code colours. The default follows `prefers-color-scheme` (Paper or Night) until the user picks one.
+All colours are CSS variables on `:root[data-theme=…]`; components never hard-code colours. Visitors without a theme cookie get Sand.
 
 ### Course colours
 
@@ -682,11 +682,11 @@ Colour is never the only signal. Each course also gets a texture (solid, dots, d
 1. Header: course you are sitting, room name, day, time, back link.
 2. Source notice with Looks right and Report.
 3. A bar across the top labelled FRONT.
-4. The seat grid: rows top to bottom from the front, seats left to right, row numbers on the left edge and seat numbers along the top. Empty positions are faint outlines so gaps read correctly.
+4. The seat grid: rows top to bottom from the front, seats numbered from the invigilator's left (right to left on screen, see section 1), row numbers on the left edge and seat numbers along the top. Empty positions are faint outlines so gaps read correctly.
 5. A strip at the back for extra chairs. In the Clash Room, a list of sittings replaces the grid.
 6. Legend chips under the grid, one per course: colour swatch, code, count. Tapping a chip spotlights that course (others dim to 25%); tapping again clears it.
 
-Your seat is filled with the accent colour, carries a small "you" tab above it, and has a soft pulsing ring (no pulse under `prefers-reduced-motion`). On load, the grid scrolls your seat into view. Other seats use their course fill and texture. Tapping any seat opens a popover on desktop or a bottom sheet on mobile with name, registration number in mono, course code and title, section when it differs from the course's usual one, and seat label. Names never appear on the grid itself.
+Your seat is filled with the accent colour, carries a small "you" tab above it, and has a soft pulsing ring (no pulse under `prefers-reduced-motion`). On load, the grid scrolls your seat into view. Other seats use their course fill and texture. Tapping any seat opens a popover pinned to it (on phones too: it flips and shifts to stay on screen, and is never wider than the viewport) with name, registration number in mono, course code and title, section when it differs from the course's usual one, and seat label. Names never appear on the grid itself. When the viewer has a seat, seats of their own section carry a short tag (the section letter, for example `A` for `BSE-5A`) in both colour modes, with a key under the legend.
 
 Sizing: seats are 28 px squares with 4 px gaps on desktop and shrink to a minimum of 22 px on a 360 px screen, which fits 12 seats per row. Wider rooms scroll horizontally inside their own container; pinch-zoom stays enabled.
 

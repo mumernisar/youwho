@@ -1,27 +1,40 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ColourBy, LegendItem, RoomModel, SeatModel } from './room-model';
+import { MIRRORED, type ColourBy, type LegendItem, type RoomModel, type SeatModel } from './room-model';
 import { ColourToggle, Legend } from './room-legend';
-import { SeatSheet } from './seat-sheet';
+import { SeatPopover } from './seat-popover';
 import { hueStyle } from './palette';
-import { Minus, Plus, Target } from './icons';
+import { CornerBottomRight, CornerTopRight, Minus, Plus, Target } from './icons';
 
 /** Zoom levels as multiples of the size that fits the card. */
 const ZOOMS = [0.75, 1, 1.25, 1.5, 1.85];
 // 20px seats with at least 4px between them meet the WCAG 2.2 target-spacing rule (24px).
 const MIN_SEAT = 20;
 const MAX_SEAT = 44;
-const AXIS = 18;
-const PAD = 16;
+/** Under this the map drops the YOU tab, which would cover the row in front. */
+const SMALL_SEAT = 28;
+const PAD = 8;
+/** Narrow maps keep row numbers on the left only, in a thinner column. */
+const NARROW = 480;
 const gapFor = (seat: number) => Math.max(4, seat * 0.22);
 
+interface Fit {
+  seat: number;
+  axis: number;
+  bothAxes: boolean;
+}
+
 /** Largest seat that fits `width`, so the whole room shows without scrolling when it can. */
-function fitSeat(width: number, cols: number): number {
-  const room = width - PAD - 2 * AXIS;
-  let s = room / (cols + (cols + 1) * 0.22);
-  if (gapFor(s) === 4) s = (room - (cols + 1) * 4) / cols;
-  return Math.max(MIN_SEAT, Math.min(MAX_SEAT, s));
+function fitRoom(width: number, cols: number): Fit {
+  const bothAxes = width >= NARROW;
+  const axis = bothAxes ? 18 : 14;
+  const axes = bothAxes ? 2 : 1;
+  const gaps = cols + axes - 1;
+  const room = width - PAD - axes * axis;
+  let s = room / (cols + gaps * 0.22);
+  if (gapFor(s) === 4) s = (room - gaps * 4) / cols;
+  return { seat: Math.max(MIN_SEAT, Math.min(MAX_SEAT, s)), axis, bothAxes };
 }
 
 export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomName: string; aside?: React.ReactNode }) {
@@ -30,15 +43,20 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
   const [spot, setSpot] = useState<string | null>(null);
   const [open, setOpen] = useState<SeatModel | null>(null);
   const [zoom, setZoom] = useState(1);
-  const [fit, setFit] = useState(40);
+  const [fit, setFit] = useState<Fit>({ seat: 40, axis: 18, bothAxes: true });
   const root = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
+  const anchor = useRef<HTMLElement | null>(null);
+  const seatPx = fit.seat * ZOOMS[zoom]!;
+  const mine = model.mySection;
 
   const items = by === 'course' ? model.courses : model.sections;
   const byKey = useMemo(() => new Map(items.map((i) => [i.key, i])), [items]);
   const keyOf = useCallback((s: SeatModel) => (by === 'course' ? `c${s.course}` : s.section), [by]);
   const courseOf = useMemo(() => new Map(model.courses.map((c) => [c.key, c])), [model.courses]);
   const cells = useMemo(() => new Map(grid.map((s) => [`${s.row}:${s.col}`, s])), [grid]);
+  /** Seat numbers in screen order, left to right. */
+  const cols = useMemo(() => Array.from({ length: dims.cols }, (_, i) => (MIRRORED ? dims.cols - i : i + 1)), [dims.cols]);
 
   /** On load only the map pans to your seat; the button also brings the map into view. */
   const findMe = useCallback((fromButton: boolean) => {
@@ -55,7 +73,7 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
   useEffect(() => {
     const el = scroller.current;
     if (!el) return;
-    const measure = () => setFit(fitSeat(el.clientWidth, Math.max(dims.cols, 1)));
+    const measure = () => setFit(fitRoom(el.clientWidth, Math.max(dims.cols, 1)));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
@@ -65,7 +83,7 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
 
   const describe = (s: SeatModel) => {
     const c = model.courseInfo[s.course];
-    return `${s.label}, ${c?.code ?? ''} ${c?.title ?? ''}, ${s.name}, ${s.reg}${s.me ? ', you' : ''}`;
+    return `${s.label}, ${c?.code ?? ''} ${c?.title ?? ''}, ${s.name}, ${s.reg}${s.me ? ', you' : ''}${s.mySection ? ', your section' : ''}`;
   };
   const firstFocus = me && me.row ? me : grid[0];
   const changeBy = (v: ColourBy) => {
@@ -82,7 +100,7 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
     let c = Number(el.dataset.c);
     for (;;) {
       r += d[0]!;
-      c += d[1]!;
+      c += MIRRORED ? -d[1]! : d[1]!;
       if (r < 1 || c < 1 || r > dims.rows || c > dims.cols) return;
       const next = root.current?.querySelector<HTMLElement>(`[data-r="${r}"][data-c="${c}"]`);
       if (next) return next.focus();
@@ -96,18 +114,25 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
       'data-tex': it?.tex ?? 0,
       'data-me': s.me,
       'data-dim': spot !== null && keyOf(s) !== spot,
+      'data-seat': '',
       'aria-pressed': open?.id === s.id,
       'aria-label': describe(s),
-      onClick: () => setOpen(s),
+      onClick: (e: React.MouseEvent<HTMLElement>) => {
+        anchor.current = e.currentTarget;
+        setOpen((cur) => (cur?.id === s.id ? null : s));
+      },
     };
   };
+  const tag = (s: SeatModel) => (s.mySection && mine ? <span aria-hidden className="seat-tag">{mine.tag}</span> : null);
 
   const listSeat = (s: SeatModel) => {
     const c = model.courseInfo[s.course];
     return (
       <li key={s.id}>
         <button type="button" {...seatProps(s)} className={`flex w-full items-center gap-3 rounded-xl border border-line bg-surface p-3 text-left transition hover:border-brand ${spot !== null && keyOf(s) !== spot ? 'opacity-30' : ''}`}>
-          <span className="mini-seat" data-tex={byKey.get(keyOf(s))?.tex ?? 0} data-me={s.me} style={hueStyle(byKey.get(keyOf(s))?.hue ?? 0)} />
+          <span className="mini-seat" data-tex={byKey.get(keyOf(s))?.tex ?? 0} data-me={s.me} style={hueStyle(byKey.get(keyOf(s))?.hue ?? 0)}>
+            {tag(s)}
+          </span>
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-semibold">{s.label}</span>
             <span className="block truncate text-xs text-muted">{c?.title}</span>
@@ -127,11 +152,25 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
   ).filter(([, l]) => l.length > 0);
 
   return (
-    <div ref={root} className="room mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]" style={{ '--cols': Math.max(dims.cols, 1), '--seat': `${Math.round(fit * ZOOMS[zoom]!)}px`, '--gap': `${Math.round(gapFor(fit * ZOOMS[zoom]!))}px`, '--axis': `${AXIS}px` } as React.CSSProperties} {...(spot !== null ? { 'data-spot': spot } : {})}>
+    <div
+      ref={root}
+      className="room mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]"
+      style={{ '--cols': Math.max(dims.cols, 1), '--seat': `${Math.round(seatPx)}px`, '--gap': `${Math.round(gapFor(seatPx))}px`, '--axis': `${fit.axis}px` } as React.CSSProperties}
+      data-small={seatPx < SMALL_SEAT}
+      data-axes={fit.bothAxes ? 2 : 1}
+      {...(spot !== null ? { 'data-spot': spot } : {})}
+    >
       {aside && <div className="lg:hidden">{aside}</div>}
-      <section className="card min-w-0 p-3 sm:p-4" aria-label="Seating plan">
+      <section className="card min-w-0 p-2 sm:p-4" aria-label="Seating plan">
         <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-3">
-          <h2 className="text-base font-bold">Seating plan</h2>
+          <div>
+            <h2 className="text-base font-bold">Seating plan</h2>
+            {grid.length > 0 && (
+              <p className="text-xs text-muted">
+                {MIRRORED ? 'Left and right as the invigilator at the front sees it. Seat 1 is on your right.' : 'Seat 1 is on your left as you face the front.'}
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {me && me.row > 0 && (
               <button type="button" onClick={() => findMe(true)} className="btn btn-secondary btn-sm">
@@ -152,35 +191,51 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
         {grid.length > 0 ? (
           <div ref={scroller} className="room-floor max-h-[78dvh] overflow-auto">
             <div className="room-canvas">
+              <div aria-hidden className={`room-corner-row ${MIRRORED ? 'justify-end' : 'justify-start'}`}>
+                <span className="room-corner" title="Front left, where seat 1 of row 1 is">
+                  <CornerTopRight className={`h-3 w-3 ${MIRRORED ? '' : '-scale-x-100'}`} />
+                  Front left
+                </span>
+              </div>
               <div className="room-board" aria-hidden>FRONT OF ROOM</div>
               <div role="grid" aria-label={`Seats in room ${roomName}, row 1 at the front`} className="room-grid" onKeyDown={onKey}>
                 <div role="row" className="contents">
                   <span role="columnheader" aria-label="Row" />
-                  {Array.from({ length: dims.cols }, (_, i) => (
-                    <span key={i} role="columnheader" aria-label={`Seat ${i + 1}`} className="room-axis">{i + 1}</span>
+                  {cols.map((n) => (
+                    <span key={n} role="columnheader" aria-label={`Seat ${n}`} className="room-axis">{n}</span>
                   ))}
-                  <span role="columnheader" aria-hidden />
+                  {fit.bothAxes && <span role="columnheader" aria-hidden />}
                 </div>
                 {Array.from({ length: dims.rows }, (_, r) => (
                   <div role="row" key={r} className="contents">
                     <span role="rowheader" aria-label={`Row ${r + 1}`} className="room-axis">{r + 1}</span>
-                    {Array.from({ length: dims.cols }, (_, c) => {
-                      const s = cells.get(`${r + 1}:${c + 1}`);
-                      if (!s) return <span key={c} role="gridcell" aria-label="Empty" className="seat-gap" />;
+                    {cols.map((col) => {
+                      const s = cells.get(`${r + 1}:${col}`);
+                      if (!s) return <span key={col} role="gridcell" aria-label="Empty" className="seat-gap" />;
                       return (
-                        <span key={c} role="gridcell" className="relative">
+                        <span key={col} role="gridcell" className="relative">
                           {s.me && <span className="seat-pin">YOU</span>}
-                          <button type="button" className="seat block" data-r={r + 1} data-c={c + 1} tabIndex={s === firstFocus ? 0 : -1} title={`${s.label} · ${model.courseInfo[s.course]?.code ?? ''}`} {...seatProps(s)}>
+                          <button type="button" className="seat block" data-r={r + 1} data-c={col} tabIndex={s === firstFocus ? 0 : -1} title={`${s.label} · ${model.courseInfo[s.course]?.code ?? ''}`} {...seatProps(s)}>
                             {s.me && <span className="seat-ring" />}
+                            {tag(s)}
                           </button>
                         </span>
                       );
                     })}
-                    <span aria-hidden className="room-axis">{r + 1}</span>
+                    {fit.bothAxes && <span aria-hidden className="room-axis">{r + 1}</span>}
                   </div>
                 ))}
               </div>
-              <p className="mt-5 text-center text-xs font-medium tracking-[0.2em] text-muted">BACK OF ROOM</p>
+              <div className={`room-back ${MIRRORED ? 'flex-row' : 'flex-row-reverse'}`}>
+                <span aria-hidden className="flex-1" />
+                <p className="text-xs font-medium tracking-[0.2em] text-muted">BACK OF ROOM</p>
+                <span aria-hidden className={`flex flex-1 ${MIRRORED ? 'justify-end' : 'justify-start'}`}>
+                  <span className="room-corner" title="Back left, where seat 1 of the last row is">
+                    <CornerBottomRight className={`h-3 w-3 ${MIRRORED ? '' : '-scale-x-100'}`} />
+                    Back left
+                  </span>
+                </span>
+              </div>
             </div>
           </div>
         ) : (
@@ -203,14 +258,26 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
             <ColourToggle value={by} onChange={changeBy} />
           </div>
           <Legend items={items} spot={spot} onSpot={setSpot} />
+          {mine && (
+            <p className="mt-3 flex items-center gap-3 rounded-xl bg-surface-2 px-3 py-2.5 text-sm">
+              <span aria-hidden className="mini-seat mini-seat-plain">
+                <span className="seat-tag">{mine.tag}</span>
+              </span>
+              <span className="min-w-0 flex-1">
+                Seats marked <b className="font-mono">{mine.tag}</b> are your section, <span className="font-mono">{mine.label}</span>
+              </span>
+              <span className="min-w-8 rounded-lg bg-surface px-2 py-0.5 text-center font-mono text-xs font-semibold text-ink-2">{mine.count}</span>
+            </p>
+          )}
           {spot && (
             <button type="button" onClick={() => setSpot(null)} className="btn btn-quiet btn-sm mt-2 w-full">Show all seats</button>
           )}
         </section>
       </aside>
 
-      <SeatSheet
+      <SeatPopover
         seat={open}
+        anchor={anchor}
         me={me}
         course={(s) => {
           const c = courseOf.get(`c${s.course}`) as LegendItem;

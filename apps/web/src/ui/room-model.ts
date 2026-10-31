@@ -25,6 +25,8 @@ export interface SeatModel {
   row: number;
   col: number;
   me: boolean;
+  /** Same section as you (not counting your own seat). */
+  mySection: boolean;
 }
 
 export interface RoomModel {
@@ -37,9 +39,20 @@ export interface RoomModel {
   clash: SeatModel[];
   others: SeatModel[];
   me: SeatModel | null;
+  /** Your section and the short tag drawn on its seats; null without a seat or a real section. */
+  mySection: { label: string; tag: string; count: number } | null;
 }
 
 const byCount = <T extends { count: number }>(a: T, b: T) => b.count - a.count;
+
+const NO_SECTION = new Set(['', '—', '-']);
+
+/** "BSE-5A" → "A", "BCS-6AB" → "AB", "BSE-6" → "6". Short enough to sit on a seat. */
+export function sectionTag(label: string): string {
+  const m = /(\d+)([A-Z]{0,3})$/i.exec(label.trim());
+  if (m) return (m[2] || m[1]!).toUpperCase();
+  return label.trim().slice(0, 2).toUpperCase();
+}
 
 /** Render model: course and section colours (largest group first, stable hues), seats split by kind. */
 export function buildRoomModel(data: RoomViewData, me: string | null): RoomModel {
@@ -92,6 +105,10 @@ export function buildRoomModel(data: RoomViewData, me: string | null): RoomModel
     clash: [],
     others: [],
     me: null,
+    mySection:
+      mySeat && !NO_SECTION.has(mySeat.section.trim())
+        ? { label: mySeat.section, tag: sectionTag(mySeat.section), count: (sectionCount.get(mySeat.section) ?? 1) - 1 }
+        : null,
   };
   data.seats.forEach((s, i) => {
     const seat: SeatModel = {
@@ -105,6 +122,7 @@ export function buildRoomModel(data: RoomViewData, me: string | null): RoomModel
       row: s.position.kind === 'grid' ? s.position.row : 0,
       col: s.position.kind === 'grid' ? s.position.col : 0,
       me: s.reg === me,
+      mySection: model.mySection !== null && s.reg !== me && s.section === mySeat!.section,
     };
     if (seat.me) model.me = seat;
     ({ grid: model.grid, extra: model.extras, clash: model.clash, other: model.others })[s.position.kind].push(seat);
@@ -115,10 +133,21 @@ export function buildRoomModel(data: RoomViewData, me: string | null): RoomModel
   return model;
 }
 
-/** "2 seats to your right, 1 row behind you". Row 1 is the front; seats count from the left. */
+/**
+ * Whose left "seat 5 from the left" means. The source page does not say. 'invigilator' reads it as
+ * the left of someone standing at the front facing the students, so seat 1 is on the students'
+ * right. Switch to 'student' if a real room shows otherwise; the drawing and directions follow.
+ */
+export const SEATS_COUNT_FROM: 'invigilator' | 'student' = 'invigilator';
+
+/** The map always has the front at the top, so the students' right is the screen's right. */
+export const MIRRORED = SEATS_COUNT_FROM === 'invigilator';
+
+/** "2 seats to your right, 1 row behind you", as the student sees it facing the front. */
 export function relativeTo(me: SeatModel, s: SeatModel): string | null {
   if (!me.row || !s.row || me.id === s.id) return null;
-  const dx = s.col - me.col;
+  // Positive is towards the student's right.
+  const dx = (s.col - me.col) * (MIRRORED ? -1 : 1);
   const dy = s.row - me.row;
   if (Math.abs(dx) === 1 && dy === 0) return `Right next to you, on your ${dx > 0 ? 'right' : 'left'}`;
   if (dx === 0 && Math.abs(dy) === 1) return dy < 0 ? 'Directly in front of you' : 'Directly behind you';

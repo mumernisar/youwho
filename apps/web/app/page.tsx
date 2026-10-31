@@ -82,29 +82,28 @@ export default async function Home() {
           <ul className="grid gap-3 md:grid-cols-2">
             {board.data.map((d) => (
               <li key={d.slug} className="min-w-0">
-                <Link href={`/d/${d.slug}`} className="card-link flex items-center gap-4 p-4">
-                  <div className="shrink-0">
+                <Link href={`/d/${d.slug}`} className="card-link flex h-full flex-col justify-between p-4">
+                  <span className="flex min-w-0 items-center gap-3">
                     <DeptBadge slug={d.slug} label={d.label} />
-                  </div>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-semibold">{d.label}</span>
-                    <span className="block truncate font-mono text-xs text-muted">
-                      {sourceHost(d.sourceUrl)}
+                    <span className="min-w-0 flex-1">
+                      <span className="line-clamp-2 leading-snug font-semibold">{d.label}</span>
+                      <span className="block truncate font-mono text-xs text-muted">{sourceHost(d.sourceUrl)}</span>
                     </span>
-                    <span className="mt-2 flex flex-wrap gap-1.5">
-                      <span className="chip">
-                        <Users className="h-3.5 w-3.5" />
-                        {count(d.students)}
-                      </span>
-                      <span className="chip">Updated {fmtUpdated(d.updatedAt)}</span>
-                      <span className="chip">
-                        <ThumbsUp className="h-3.5 w-3.5" />
-                        {d.confirms}
-                      </span>
+                    <span className="go">
+                      <ArrowRight className="h-4 w-4" />
                     </span>
                   </span>
-                  <span className="go">
-                    <ArrowRight className="h-4 w-4" />
+                  <span className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line pt-3 text-xs text-muted">
+                    <span className="inline-flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5" />
+                      <span className="font-semibold text-ink-2">{count(d.students)}</span> students
+                    </span>
+                    <span className="inline-flex items-center gap-1.5" title="Looks right">
+                      <ThumbsUp className="h-3.5 w-3.5" />
+                      <span className="font-semibold text-ink-2">{d.confirms}</span>
+                      <span className="sr-only">looks right</span>
+                    </span>
+                    <span className="ml-auto">Updated {fmtUpdated(d.updatedAt)}</span>
                   </span>
                 </Link>
               </li>

@@ -30,5 +30,7 @@ export const Refresh = (p: P) => base(<path d="M20 11a8 8 0 0 0-14.7-4M4 4v4h4m-
 export const Star = (p: P) => base(<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" />, p);
 export const Sun = (p: P) => base(<><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>, p);
 export const Target = (p: P) => base(<><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="3" /><path d="M12 2v3m0 14v3M2 12h3m14 0h3" /></>, p);
+export const CornerTopRight = (p: P) => base(<path d="M6 6h12v12" />, p);
+export const CornerBottomRight = (p: P) => base(<path d="M18 6v12H6" />, p);
 export const Pin = (p: P) => base(<><path d="M12 21s-6.5-5.6-6.5-11A6.5 6.5 0 0 1 18.5 10c0 5.4-6.5 11-6.5 11Z" /><circle cx="12" cy="10" r="2.3" /></>, p);
 export const Building = (p: P) => base(<><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M9 7h1m4 0h1M9 11h1m4 0h1M9 15h1m4 0h1M10 21v-3h4v3" /></>, p);
