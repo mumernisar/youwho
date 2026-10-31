@@ -872,3 +872,4 @@ Recorded while building; the behaviour below is what is implemented.
 - Seat details use one Radix dialog (bottom sheet on phones, centred card on desktop) instead of a separate popover.
 - Course textures are CSS gradients rather than SVG patterns.
 - The home page ships about 146 KB of gzipped JavaScript, of which about 118 KB is the Next.js and React baseline, so the 100 KB target in section 9 is not reachable with this stack. The add sheet is loaded on demand. Lighthouse (mobile) scores 100 for performance, accessibility, best practices and SEO.
+- The scraper is deployed on Heroku (container stack, `heroku.yml`, Eco dyno, about $5/month) instead of Render's free tier, so the "hosting must stay free" decision no longer holds for the scraper. The Dockerfile is unchanged; `render.yaml` was removed.

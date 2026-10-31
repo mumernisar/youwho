@@ -6,9 +6,9 @@ published on Google Sites. Full spec: docs/spec.md (section numbers below refer 
 ## Stack
 - pnpm workspaces, TypeScript strict, Node 22
 - apps/web: Next.js App Router on Vercel, Tailwind, Radix primitives, cookie-based themes
-- apps/scraper: node:http + Playwright headless shell on Render free (512 MB), built with tsup
+- apps/scraper: node:http + Playwright headless shell on a Heroku Eco dyno (512 MB), built with tsup
 - packages: errors, core, db (Drizzle, Neon), notify (Resend via fetch), config (zod env + pino)
-- No test framework and no CI. Vercel and Render deploy from main.
+- No test framework and no CI. Vercel and Heroku deploy from main.
 
 ## Commands
 - pnpm dev              web + scraper (PAGE_SOURCE=fixture) + local Postgres via docker compose

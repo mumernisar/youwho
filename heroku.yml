@@ -1,0 +1,5 @@
+# Heroku container deploy for the scraper. Needs the container stack:
+#   heroku stack:set container -a <app>
+build:
+  docker:
+    web: Dockerfile

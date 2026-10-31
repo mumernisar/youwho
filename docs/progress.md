@@ -76,3 +76,6 @@ Phases follow spec section 10. Only big phases are logged here.
 - Slot keys now include the end time (`2026-11-04T08:30-09:50`). Papers that start together but end at different times are separate sessions, so a room view shows only its own slot (room 106 on 4 Nov: 47 seats at 8:30–9:50 and 3 seats at 8:30–10:00, previously one view of 50). Old-style links (`…T08:30`) now give 404.
 - `DATA_REVISION` (in `packages/core`) is mixed into `data_hash` so datasets saved with the old keys are replaced on their next refresh; local and Neon were re-seeded.
 - Owner emails are sent from `youwho <youwho@umernisar.dev>` (verified in Resend).
+
+## Change of host: scraper on Heroku
+- `render.yaml` replaced by `heroku.yml` (container stack, root `Dockerfile` unchanged). README deploy steps rewritten for Heroku. Eco dyno costs about $5/month and sleeps after 30 minutes idle; dynos restart about daily, which the boot sweep already handles.
