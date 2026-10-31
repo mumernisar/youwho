@@ -15,7 +15,7 @@ function Logo() {
   );
 }
 
-export function Header({ theme, repoUrl }: { theme: ThemeId | null; repoUrl: string }) {
+export function Header({ theme, repoUrl }: { theme: ThemeId; repoUrl: string }) {
   return (
     <header className="bg-head text-head-ink">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">

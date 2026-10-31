@@ -6,11 +6,14 @@ export const THEMES = [
 
 export type ThemeId = (typeof THEMES)[number]['id'];
 
+export const DEFAULT_THEME: ThemeId = 'sand';
+
 // Earlier theme names map onto the nearest current one.
 const LEGACY: Record<string, ThemeId> = { paper: 'day', chalkboard: 'dusk', night: 'dusk' };
 
-export function normalizeTheme(v: string | undefined): ThemeId | null {
-  if (!v) return 'sand';
+/** The cookie's theme; no cookie or an unknown value gets the default. */
+export function normalizeTheme(v: string | undefined): ThemeId {
+  if (!v) return DEFAULT_THEME;
   if (THEMES.some((t) => t.id === v)) return v as ThemeId;
-  return LEGACY[v] ?? 'sand';
+  return LEGACY[v] ?? DEFAULT_THEME;
 }

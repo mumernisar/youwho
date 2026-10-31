@@ -12,7 +12,7 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'sw
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-plex-mono', display: 'swap' });
 
 export const metadata: Metadata = {
-  title: { default: 'youwho', template: '%s · youwho' },
+  title: { default: 'Youuwho - Trick or treat', template: '%s · Youuwho' },
   description: 'See who is sitting around you in the exam room.',
 };
 
@@ -20,16 +20,14 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#0b2a5c' },
-    { media: '(prefers-color-scheme: dark)', color: '#0d1526' },
-  ],
+  // Sand's masthead; the browser bar does not follow a theme picked later.
+  themeColor: '#2b2016',
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const theme = normalizeTheme((await cookies()).get('yw_theme')?.value);
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable}`} {...(theme ? { 'data-theme': theme } : {})}>
+    <html lang="en" className={`${inter.variable} ${mono.variable}`} data-theme={theme}>
       <body className="font-sans text-ink antialiased">
         <AddDepartmentProvider>
           <OfflineBar />

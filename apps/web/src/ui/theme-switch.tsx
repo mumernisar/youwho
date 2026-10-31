@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { THEMES, type ThemeId } from './themes';
 
 /** Segmented picker. The server renders the cookie's theme into <html>, so there is no flash. */
-export function ThemeSwitch({ initial }: { initial: ThemeId | null }) {
-  const [theme, setTheme] = useState<ThemeId | null>(initial);
+export function ThemeSwitch({ initial }: { initial: ThemeId }) {
+  const [theme, setTheme] = useState<ThemeId>(initial);
   const pick = (id: ThemeId) => {
     setTheme(id);
     document.documentElement.dataset.theme = id;
