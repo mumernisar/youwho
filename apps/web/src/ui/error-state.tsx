@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { PublicError } from '@youwho/errors';
 import { ERROR_COPY, type ErrorIcon } from './error-copy';
+import { ArrowRight, Refresh } from './icons';
 
 const PATHS: Record<ErrorIcon, string> = {
   alert: 'M12 8v5m0 3.5v.01M10.3 3.9 2.6 17.5A2 2 0 0 0 4.3 20.5h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z',
@@ -18,22 +19,40 @@ export function ErrorState({ error, onRetry, compact }: { error: PublicError; on
   const router = useRouter();
   const copy = ERROR_COPY[error.code];
   const retry = onRetry ?? (() => router.refresh());
-  const btn = 'inline-flex min-h-11 items-center rounded border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-bg';
-  return (
-    <div role="alert" className={compact ? 'py-3' : 'mx-auto max-w-md px-4 py-16 text-center'}>
-      <svg aria-hidden viewBox="0 0 24 24" className={`mx-auto mb-3 h-7 w-7 fill-none stroke-current ${compact ? 'hidden' : ''}`} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d={PATHS[copy.icon]} />
-      </svg>
-      <h2 className="text-lg font-semibold">{copy.heading}</h2>
-      <p className="mt-1 text-muted">{error.message}</p>
-      <div className="mt-5 flex justify-center gap-3">
-        {copy.action === 'retry' && error.retryable && (
-          <button type="button" className={btn} onClick={retry}>Try again</button>
-        )}
-        {(copy.action === 'go-home' || copy.action === 'edit-input' || copy.action === 'add-department') && (
-          <Link href="/" className={btn}>{copy.action === 'add-department' ? 'Add a department' : 'Back to start'}</Link>
-        )}
+  const actions = (
+    <>
+      {copy.action === 'retry' && error.retryable && (
+        <button type="button" className={`btn btn-primary ${compact ? 'btn-sm' : ''}`} onClick={retry}><Refresh className="h-4 w-4" />Try again</button>
+      )}
+      {(copy.action === 'go-home' || copy.action === 'edit-input' || copy.action === 'add-department') && !compact && (
+        <Link href="/" className="btn btn-secondary">{copy.action === 'add-department' ? 'Add a department' : 'Back to search'}<ArrowRight className="h-4 w-4" /></Link>
+      )}
+    </>
+  );
+  const icon = (
+    <span className="grid h-11 w-11 flex-none place-items-center rounded-2xl bg-[color-mix(in_oklab,var(--danger)_12%,var(--surface))] text-danger">
+      <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5 fill-none stroke-current" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={PATHS[copy.icon]} /></svg>
+    </span>
+  );
+
+  if (compact) {
+    return (
+      <div role="alert" className="mt-3 flex items-start gap-3 rounded-2xl border border-line bg-surface-2 p-3">
+        {icon}
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold">{copy.heading}</p>
+          <p className="text-sm text-muted">{error.message}</p>
+          {error.retryable && copy.action === 'retry' && <div className="mt-2">{actions}</div>}
+        </div>
       </div>
+    );
+  }
+  return (
+    <div role="alert" className="mx-auto flex max-w-md flex-col items-center px-4 py-14 text-center">
+      {icon}
+      <h2 className="mt-4 text-xl font-bold">{copy.heading}</h2>
+      <p className="mt-1 text-muted">{error.message}</p>
+      <div className="mt-6 flex flex-wrap justify-center gap-3">{actions}</div>
       {error.requestId && <p className="mt-6 font-mono text-xs text-muted">ref {error.requestId.slice(0, 8)}</p>}
     </div>
   );

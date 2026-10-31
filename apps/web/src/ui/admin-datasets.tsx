@@ -71,7 +71,7 @@ export function AdminDatasets({ rows }: { rows: AdminRow[] }) {
     <div className="pt-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-xl font-semibold">Admin</h1>
-        <button type="button" onClick={signOut} className="min-h-11 rounded border border-rule px-3 text-sm">Sign out</button>
+        <button type="button" onClick={signOut} className="btn btn-secondary btn-sm">Sign out</button>
       </div>
 
       {error && <ErrorState compact error={{ code: error.code, message: error.message, retryable: false }} />}
@@ -117,22 +117,22 @@ export function AdminDatasets({ rows }: { rows: AdminRow[] }) {
         </table>
       </div>
 
-      <button type="button" disabled={chosen.length === 0} onClick={() => setConfirmOpen(true)} className="mt-5 min-h-11 rounded border border-ink px-4 text-sm font-medium hover:bg-ink hover:text-bg disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-ink">
+      <button type="button" disabled={chosen.length === 0} onClick={() => setConfirmOpen(true)} className="btn btn-danger mt-5">
         Delete selected{chosen.length ? ` (${chosen.length})` : ''}
       </button>
 
       <Dialog.Root open={confirmOpen} onOpenChange={setConfirmOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
-          <Dialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-xl border border-rule bg-surface p-5 text-ink">
+          <Dialog.Overlay className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]" />
+          <Dialog.Content className="fixed top-1/2 left-1/2 z-50 w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-surface p-6 text-ink shadow-2xl">
             <Dialog.Title className="text-lg font-semibold">Delete {chosen.length} {chosen.length === 1 ? 'department' : 'departments'}?</Dialog.Title>
             <Dialog.Description className="mt-1 text-sm text-muted">Their students, seats, votes and reports will be removed, and queued jobs for these links will fail. Anyone can add a deleted link again.</Dialog.Description>
             <ul className="mt-3 space-y-2">
               {chosen.map((c) => <li key={c.slug}><span className="font-medium">{c.label}</span><span className="block break-all font-mono text-xs text-muted">{c.sourceUrl}</span></li>)}
             </ul>
             <div className="mt-5 flex justify-end gap-3">
-              <Dialog.Close className="min-h-11 rounded border border-rule px-4 text-sm">Cancel</Dialog.Close>
-              <button type="button" onClick={remove} disabled={busy} className="min-h-11 rounded bg-ink px-4 text-sm font-medium text-bg disabled:opacity-40">{busy ? 'Deleting…' : 'Delete'}</button>
+              <Dialog.Close className="btn btn-secondary">Cancel</Dialog.Close>
+              <button type="button" onClick={remove} disabled={busy} className="btn btn-danger">{busy ? 'Deleting…' : 'Delete'}</button>
             </div>
           </Dialog.Content>
         </Dialog.Portal>

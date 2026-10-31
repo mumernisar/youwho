@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { apiFetch, ClientError } from '@/client/api-fetch';
 import { ErrorState } from './error-state';
+import { Flag, ThumbsUp } from './icons';
 import { ReportSheet } from './report-sheet';
 
 const toClient = (e: unknown) =>
@@ -32,14 +33,18 @@ export function SourceActions({ slug, confirms, confirmed }: { slug: string; con
     }
   }
 
-  const btn = 'min-h-11 rounded border border-rule px-3 text-sm hover:border-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-bg';
   return (
-    <div>
+    <div className="flex-none">
       <div className="flex gap-2">
-        <button type="button" onClick={toggle} aria-pressed={state.confirmed} className={btn}>
-          Looks right · <span className="font-mono">{state.count}</span>
+        <button type="button" onClick={toggle} aria-pressed={state.confirmed} className="btn btn-secondary btn-sm">
+          <ThumbsUp className="h-4 w-4" />
+          Looks right
+          <span className="rounded-md bg-surface-2 px-1.5 font-mono text-xs">{state.count}</span>
         </button>
-        <button type="button" onClick={() => setReportOpen(true)} className={btn}>Report</button>
+        <button type="button" onClick={() => setReportOpen(true)} className="btn btn-quiet btn-sm">
+          <Flag className="h-4 w-4" />
+          Report
+        </button>
       </div>
       {error && <ErrorState compact error={{ code: error.code, message: error.message, retryable: false }} />}
       <ReportSheet slug={slug} open={reportOpen} onOpenChange={setReportOpen} />

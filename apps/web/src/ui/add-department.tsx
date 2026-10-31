@@ -105,7 +105,7 @@ export function AddDepartmentProvider({ children }: { children: React.ReactNode 
       )}
 
       {!open && job && (active || job.status === 'done') && (
-        <button type="button" onClick={() => { setEverOpened(true); setOpen(true); }} className="fixed right-4 bottom-4 z-30 flex min-h-11 items-center gap-3 rounded border border-ink bg-surface px-4 text-sm shadow" aria-live="polite">
+        <button type="button" onClick={() => { setEverOpened(true); setOpen(true); }} className="fixed right-4 bottom-4 z-30 flex min-h-12 items-center gap-3 rounded-2xl border border-line bg-surface px-4 text-sm font-medium shadow-[var(--shadow-lg)]" aria-live="polite">
           <span>{jobText(job)}</span>
           {job.status === 'done' && <span className="font-medium underline">View</span>}
         </button>

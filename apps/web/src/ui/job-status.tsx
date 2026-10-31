@@ -19,22 +19,22 @@ export function JobStatus({ job, onRetry, onClose }: { job: JobView; onRetry: ()
   return (
     <div aria-live="polite">
       <div className="flex items-baseline justify-between gap-4">
-        <p className="text-lg font-medium">{jobText(job)}</p>
+        <p className="text-lg font-semibold">{jobText(job)}</p>
         <p className="font-mono text-sm text-muted">{mmss(elapsed)}</p>
       </div>
       <div className="mt-3 grid grid-cols-4 gap-1" aria-hidden>
         {STAGES.map((s, i) => (
-          <div key={s} className={`h-0.5 ${i < done ? 'bg-ink' : 'bg-rule'} ${job.status === 'running' && i === done - 1 ? 'animate-pulse' : ''}`} />
+          <div key={s} className={`h-1.5 rounded-full ${i < done ? 'bg-brand' : 'bg-line'} ${job.status === 'running' && i === done - 1 ? 'animate-pulse' : ''}`} />
         ))}
       </div>
       {job.status === 'done' && (
         <div className="mt-5 flex gap-3">
           {job.datasetSlug && (
-            <Link href={`/d/${job.datasetSlug}`} onClick={onClose} className="inline-flex min-h-11 items-center rounded bg-ink px-4 text-sm font-medium text-bg">
+            <Link href={`/d/${job.datasetSlug}`} onClick={onClose} className="btn btn-primary">
               Open department
             </Link>
           )}
-          <button type="button" onClick={onClose} className="min-h-11 rounded border border-rule px-4 text-sm">Close</button>
+          <button type="button" onClick={onClose} className="btn btn-secondary">Close</button>
         </div>
       )}
     </div>

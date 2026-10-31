@@ -46,7 +46,7 @@ const ORD = { 1: '1st', 2: '2nd', 3: '3rd' } as const;
 export function seatText(p: SeatPositionView): string {
   switch (p.kind) {
     case 'grid':
-      return `Row ${p.row}, seat ${p.col}`;
+      return `Row ${p.row} · Seat ${p.col}`;
     case 'extra':
       return `Extra chair ${p.n}`;
     case 'clash':
@@ -54,4 +54,11 @@ export function seatText(p: SeatPositionView): string {
     case 'other':
       return p.label;
   }
+}
+
+/** Weekday, day number and short month for a date tile. */
+export function dateParts(date: string): { weekday: string; day: string; month: string } {
+  const d = new Date(`${date}T12:00:00Z`);
+  const f = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-GB', { ...o, timeZone: 'UTC' }).format(d);
+  return { weekday: f({ weekday: 'short' }), day: f({ day: 'numeric' }), month: f({ month: 'short' }) };
 }

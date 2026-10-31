@@ -79,3 +79,9 @@ Phases follow spec section 10. Only big phases are logged here.
 
 ## Change of host: scraper on Heroku
 - `render.yaml` replaced by `heroku.yml` (container stack, root `Dockerfile` unchanged). README deploy steps rewritten for Heroku. Eco dyno costs about $5/month and sleeps after 30 minutes idle; dynos restart about daily, which the boot sweep already handles.
+
+## UI redesign (after review)
+- New design system in `globals.css`: three themes (Day default, Dusk, Sand), shared `.btn`, `.card`, `.chip`, `.field` classes, OKLCH categorical colour with amber reserved for "you", inline icon set (`src/ui/icons.tsx`), palette helpers (`src/ui/palette.ts`).
+- Room view rebuilt: chair-shaped seats sized to fit the card, zoom and "Find me", front board aligned with the seats, back-of-room label, "Your seat" card, legend with course names and a Course/Section colour toggle, seat sheet with relative position ("2 seats to your right, same row").
+- Papers page: student header, day groups with coloured date tiles, full-card links with course stripe, room and seat pills and a visible "View room map" affordance. Department page: stat tiles and room cards with day-coloured slot chips. Home: navy hero with "HEck or HAck?", search bar, how-it-works strip, department cards. Breadcrumb plus back button replaces the bare "← Your papers" link.
+- Checked: screenshots at 1440 px and iPhone 13 size in all three themes; Lighthouse (mobile, production build) 100 accessibility and 99–100 performance on home, papers, department and room (Day and Dusk). Fixed on the way: two courses sharing a code collapsed onto one colour; the page jumped to the seat on load on phones; a card's accessible name did not contain its visible text.

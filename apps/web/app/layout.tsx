@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from 'next';
 import { cookies } from 'next/headers';
-import { IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google';
-import { AddDepartmentProvider } from '@/ui/add-department';
+import { IBM_Plex_Mono, Inter } from 'next/font/google';
 import { getServices } from '@/server/services';
+import { AddDepartmentProvider } from '@/ui/add-department';
 import { Header } from '@/ui/header';
 import { OfflineBar } from '@/ui/offline-bar';
+import { normalizeTheme } from '@/ui/themes';
 import './globals.css';
 
-const sans = IBM_Plex_Sans({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-plex-sans', display: 'swap' });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], variable: '--font-plex-mono', display: 'swap' });
 
 export const metadata: Metadata = {
@@ -19,21 +20,21 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: [{ media: '(prefers-color-scheme: light)', color: '#f7f3ea' }, { media: '(prefers-color-scheme: dark)', color: '#0c0d0e' }],
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#0b2a5c' },
+    { media: '(prefers-color-scheme: dark)', color: '#0d1526' },
+  ],
 };
 
-const THEMES = ['paper', 'chalkboard', 'night'];
-
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const picked = (await cookies()).get('yw_theme')?.value ?? null;
-  const theme = picked && THEMES.includes(picked) ? picked : null;
+  const theme = normalizeTheme((await cookies()).get('yw_theme')?.value);
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`} {...(theme ? { 'data-theme': theme } : {})}>
-      <body className="font-sans antialiased">
+    <html lang="en" className={`${inter.variable} ${mono.variable}`} {...(theme ? { 'data-theme': theme } : {})}>
+      <body className="font-sans text-ink antialiased">
         <AddDepartmentProvider>
           <OfflineBar />
           <Header theme={theme} repoUrl={getServices().github.url} />
-          <main className="mx-auto w-full max-w-3xl px-4 pb-24">{children}</main>
+          <main className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6">{children}</main>
         </AddDepartmentProvider>
       </body>
     </html>

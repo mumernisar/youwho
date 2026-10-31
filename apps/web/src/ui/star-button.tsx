@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { apiFetch } from '@/client/api-fetch';
+import { Star } from './icons';
 
-/** Bordered Star button with the live count in mono. Without a count it shows only "Star". */
+/** Star on GitHub with the live count in mono. Without a count it shows only "Star". */
 export function StarButton({ repoUrl }: { repoUrl: string }) {
   const pathname = usePathname();
   const [stars, setStars] = useState<number | null>(null);
@@ -15,12 +16,16 @@ export function StarButton({ repoUrl }: { repoUrl: string }) {
 
   if (pathname.startsWith('/admin')) return null;
   return (
-    <a href={repoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded border border-rule px-3 text-sm hover:border-ink">
-      <svg aria-hidden viewBox="0 0 24 24" className="h-4 w-4 fill-none stroke-current" strokeWidth="1.7" strokeLinejoin="round">
-        <path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" />
-      </svg>
-      Star on GitHub
-      {stars !== null && <span className="font-mono text-muted">{stars.toLocaleString('en')}</span>}
+    <a
+      href={repoUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={stars === null ? 'Star on GitHub' : `Star on GitHub, ${stars} stars`}
+      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/25 px-3 text-sm font-medium text-head-ink transition hover:border-white/60 hover:bg-white/10"
+    >
+      <Star className="h-4 w-4" />
+      <span className="hidden sm:inline">Star</span>
+      {stars !== null && <span className="border-l border-white/25 pl-2 font-mono text-xs">{stars.toLocaleString('en')}</span>}
     </a>
   );
 }

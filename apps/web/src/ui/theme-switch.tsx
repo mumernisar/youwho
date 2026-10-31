@@ -1,32 +1,31 @@
 'use client';
 
 import { useState } from 'react';
+import { THEMES, type ThemeId } from './themes';
 
-const THEMES = [
-  { id: 'paper', label: 'Paper' },
-  { id: 'chalkboard', label: 'Chalkboard' },
-  { id: 'night', label: 'Night' },
-] as const;
-
-/** The server renders the cookie's theme into <html>, so there is no flash on load. */
-export function ThemeSwitch({ initial }: { initial: string | null }) {
-  const [theme, setTheme] = useState<string | null>(initial);
-  const pick = (id: string) => {
+/** Segmented picker. The server renders the cookie's theme into <html>, so there is no flash. */
+export function ThemeSwitch({ initial }: { initial: ThemeId | null }) {
+  const [theme, setTheme] = useState<ThemeId | null>(initial);
+  const pick = (id: ThemeId) => {
     setTheme(id);
     document.documentElement.dataset.theme = id;
     document.cookie = `yw_theme=${id}; Path=/; Max-Age=31536000; SameSite=Lax`;
   };
   return (
-    <div role="group" aria-label="Theme" className="flex gap-1">
+    <div role="radiogroup" aria-label="Theme" className="flex items-center gap-0.5 rounded-full bg-white/10 p-1">
       {THEMES.map((t) => (
         <button
           key={t.id}
           type="button"
+          role="radio"
+          aria-checked={theme === t.id}
+          aria-label={`${t.label} theme`}
+          title={t.label}
           onClick={() => pick(t.id)}
-          aria-pressed={theme === t.id}
-          className="min-h-6 rounded border border-rule px-2 py-0.5 text-xs text-muted aria-pressed:border-ink aria-pressed:text-ink hover:text-ink"
+          className="flex min-h-8 items-center gap-1.5 rounded-full px-2 text-xs font-medium text-head-ink/75 transition hover:text-head-ink aria-checked:bg-white/90 aria-checked:text-[#0e1a2b] sm:px-2.5"
         >
-          {t.label}
+          <span aria-hidden className="h-3.5 w-3.5 rounded-full ring-1 ring-black/20" style={{ background: `linear-gradient(135deg, ${t.swatch[0]} 50%, ${t.swatch[1]} 50%)` }} />
+          <span className="hidden sm:inline">{t.label}</span>
         </button>
       ))}
     </div>
