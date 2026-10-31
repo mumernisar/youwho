@@ -12,9 +12,21 @@ import { count, fmtUpdated, sourceHost } from '@/ui/format';
 export const dynamic = 'force-dynamic';
 
 const STEPS = [
-  { icon: Calendar, title: 'Your papers', text: 'Every exam on the board, sorted by date, with room and seat.' },
-  { icon: Chair, title: 'The room', text: 'The whole seating plan, drawn as the room is laid out.' },
-  { icon: Users, title: 'Who is around you', text: 'Tap any seat for the name, roll number and course.' },
+  {
+    icon: Calendar,
+    title: 'Your papers',
+    text: 'Every exam on the board, sorted by date, with room and seat.',
+  },
+  {
+    icon: Chair,
+    title: 'The room',
+    text: 'The whole seating plan, drawn as the room is laid out.',
+  },
+  {
+    icon: Users,
+    title: 'Who is around you',
+    text: 'Tap any seat for the name, roll number and course.',
+  },
 ];
 
 export default async function Home() {
@@ -52,30 +64,48 @@ export default async function Home() {
       <section className="mt-14" aria-labelledby="board">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h2 id="board" className="text-2xl font-bold tracking-tight">On the board</h2>
-            <p className="mt-1 text-sm text-muted">Departments whose seating plans youwho can read.</p>
+            <h2 id="board" className="text-2xl font-bold tracking-tight">
+              On the board
+            </h2>
+            <p className="mt-1 text-sm text-muted">
+              Departments whose seating plans youwho can read.
+            </p>
           </div>
           {board.ok && board.data.length > 0 && <AddDepartmentButton />}
         </div>
 
         {!board.ok ? (
-          <div className="card p-4"><ErrorState error={board.error} compact /></div>
+          <div className="card p-4">
+            <ErrorState error={board.error} compact />
+          </div>
         ) : (
           <ul className="grid gap-3 md:grid-cols-2">
             {board.data.map((d) => (
-              <li key={d.slug}>
+              <li key={d.slug} className="min-w-0">
                 <Link href={`/d/${d.slug}`} className="card-link flex items-center gap-4 p-4">
-                  <DeptBadge slug={d.slug} label={d.label} />
+                  <div className="shrink-0">
+                    <DeptBadge slug={d.slug} label={d.label} />
+                  </div>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-semibold">{d.label}</span>
-                    <span className="block truncate font-mono text-xs text-muted">{sourceHost(d.sourceUrl)}</span>
+                    <span className="block truncate font-mono text-xs text-muted">
+                      {sourceHost(d.sourceUrl)}
+                    </span>
                     <span className="mt-2 flex flex-wrap gap-1.5">
-                      <span className="chip"><Users className="h-3.5 w-3.5" />{count(d.students)}</span>
+                      <span className="chip">
+                        <Users className="h-3.5 w-3.5" />
+                        {count(d.students)}
+                      </span>
                       <span className="chip">Updated {fmtUpdated(d.updatedAt)}</span>
-                      <span className="chip"><ThumbsUp className="h-3.5 w-3.5" />{d.confirms}</span>
+                      <span className="chip">
+                        <ThumbsUp className="h-3.5 w-3.5" />
+                        {d.confirms}
+                      </span>
                     </span>
                   </span>
-                  <span className="go"><ArrowRight className="h-4 w-4" /></span>
+                  <span className="go">
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
                 </Link>
               </li>
             ))}

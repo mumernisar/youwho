@@ -10,7 +10,7 @@ export type ThemeId = (typeof THEMES)[number]['id'];
 const LEGACY: Record<string, ThemeId> = { paper: 'day', chalkboard: 'dusk', night: 'dusk' };
 
 export function normalizeTheme(v: string | undefined): ThemeId | null {
-  if (!v) return null;
+  if (!v) return 'sand';
   if (THEMES.some((t) => t.id === v)) return v as ThemeId;
-  return LEGACY[v] ?? null;
+  return LEGACY[v] ?? 'sand';
 }

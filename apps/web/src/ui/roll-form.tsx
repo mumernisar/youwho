@@ -55,7 +55,7 @@ export function RollForm() {
             id="reg"
             value={value}
             onChange={(e) => setValue(formatRegInput(e.target.value))}
-            placeholder="FA24-BSE-058"
+            placeholder="FA23-BSE-127"
             autoComplete="off"
             autoCapitalize="characters"
             spellCheck={false}
