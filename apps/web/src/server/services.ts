@@ -6,6 +6,7 @@ import { createLogger, loadWebEnv, type Logger, type WebEnv } from '@youwho/conf
 import { createNotifier } from '@youwho/notify';
 import { DatasetService } from './services/datasets';
 import { LookupService } from './services/lookup';
+import { AdminService } from './services/admin';
 import { FeedbackService } from './services/feedback';
 import { JobService } from './services/jobs';
 import { RoomService } from './services/rooms';
@@ -23,6 +24,7 @@ export interface Services {
   datasets: DatasetService;
   jobs: JobService;
   feedback: FeedbackService;
+  admin: AdminService;
   scraper: ScraperClient;
 }
 
@@ -46,6 +48,7 @@ export function createServices(env: WebEnv): Services {
     datasets,
     scraper,
     feedback: new FeedbackService({ repos, notifier: createNotifier(env, log), now }),
+    admin: new AdminService({ repos, adminToken: env.ADMIN_TOKEN, sessionSecret: env.SESSION_SECRET, hash, now }),
     jobs: new JobService({ repos, datasets, scraper, now }),
     lookup: new LookupService(repos, datasets),
     rooms: new RoomService(repos, datasets),

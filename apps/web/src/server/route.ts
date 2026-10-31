@@ -2,6 +2,7 @@ import 'server-only';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { z } from 'zod';
 import { AppError, fail, toAppError } from '@youwho/errors';
+import { isAdminRequest } from './admin-session';
 import { getServices, type Services } from './services';
 import { setVoterCookie, voterFromRequest, type VoterId } from './voter';
 
@@ -20,6 +21,10 @@ interface Ctx<I> {
   voter: VoterId;
   /** Hashed client address, for per-requester limits. */
   ipHash: string;
+  /** Raw client address; only for hashing, never stored or logged. */
+  ip: string;
+  /** Queue a Set-Cookie header for the response. */
+  setCookie(header: string): void;
 }
 
 const clientIp = (req: NextRequest): string =>
@@ -34,6 +39,7 @@ const issues = (e: z.ZodError) =>
  */
 export function route<I = undefined, O = unknown>(opts: {
   input?: z.ZodType<I>;
+  auth?: 'admin';
   rateLimit?: RateLimitPolicy;
   handler: (ctx: Ctx<I>) => Promise<O>;
 }) {
@@ -44,6 +50,7 @@ export function route<I = undefined, O = unknown>(opts: {
     try {
       services = getServices();
       voter = voterFromRequest(req, services);
+      if (opts.auth === 'admin' && !isAdminRequest(req, services.env.SESSION_SECRET, services.now().getTime())) fail('UNAUTHORIZED');
 
       if (opts.rateLimit) {
         const p = opts.rateLimit;
@@ -67,8 +74,11 @@ export function route<I = undefined, O = unknown>(opts: {
         input = parsed.data;
       }
 
-      const data = await opts.handler({ input, services, req, requestId, voter, ipHash: services.hash(`ip:${clientIp(req)}`) });
+      const cookies: string[] = [];
+      const ip = clientIp(req);
+      const data = await opts.handler({ input, services, req, requestId, voter, ip, ipHash: services.hash(`ip:${ip}`), setCookie: (h) => void cookies.push(h) });
       const res = NextResponse.json({ ok: true, data });
+      for (const c of cookies) res.headers.append('set-cookie', c);
       if (voter.isNew) setVoterCookie(res, voter);
       return res;
     } catch (e) {

@@ -58,4 +58,11 @@ Phases follow spec section 10. Only big phases are logged here.
 - UI: Looks right toggle with optimistic update and rollback, Report sheet (four reasons, note up to 500 characters with counter), shown on the department page, room view and roll results.
 - Checked with two cookie jars: toggles from two voters keep the count correct (1, 2, 1, 2) and the DB agrees; the department page renders the voter's own state on the server; a bad reason gives `INVALID_INPUT`; an unknown department gives `DATASET_NOT_FOUND`; reports appear in the console notifier output with the right reason and counts.
 
-## Next: Phase 8 — Admin and notifications
+## Phase 8 — Admin and notifications: done
+- Admin: `POST/DELETE /api/admin/session`, `GET /api/admin/datasets`, `GET /api/admin/datasets/[slug]/reports`, `POST /api/admin/datasets/delete` (1 to 50 slugs, one transaction, fails queued jobs for those URLs). `route()` gained `auth: 'admin'`. The session cookie is `<expiry>.<hmac>` signed with `SESSION_SECRET` (httpOnly, SameSite=Strict, Secure in production, 7 days); the token is compared in constant time and never leaves the server. Five failed sign-ins from one IP in 15 minutes lock the form for the window, even for the right token.
+- `/admin` page (noindex): sign-in field, department table with select, reports expansion, delete confirmation dialog that lists the chosen departments and their source URLs, sign out.
+- `packages/notify`: pure templates (`render`, `renderDigest`, HTML-escaped, each linking to `/admin` and the source), `ResendNotifier` over plain `fetch` with an idempotency key, 20 emails per hour then one digest at the rollover, `send` never throws; `createNotifier` picks Resend or console. New optional env `SITE_URL` for the links.
+- Checked: unauthenticated and tampered cookies get `UNAUTHORIZED`; six wrong tokens give five `UNAUTHORIZED` then `RATE_LIMITED`; delete removes the department from the board, empties its students and fails its queued job with `DATASET_NOT_FOUND`; sign out invalidates the session; one real email per event type was delivered through Resend (added, updated, reported, unknown decoder) and the scraper sent its own `dataset.added` email; the cap sends 20 then one digest of the remaining 5.
+- Resend note: with no verified domain, Resend only delivers to the account owner's address, so `OWNER_EMAIL` is `dev.umernisar@gmail.com` and `NOTIFY_FROM` is `youwho <onboarding@resend.dev>`. To email another address, verify a domain at resend.com/domains and change `NOTIFY_FROM`.
+
+## Next: Phase 9 — Polish and launch

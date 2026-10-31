@@ -21,6 +21,8 @@ export const reportBody = z.object({
   reason: z.enum(REPORT_REASONS),
   note: z.string().trim().max(500).optional(),
 });
+export const sessionBody = z.object({ token: z.string().min(1).max(200) });
+export const deleteBody = z.object({ slugs: z.array(z.string().min(1).max(100)).min(1).max(50) });
 export const idParam = z.object({ id: z.uuid() });
 
 // ---- view types ----

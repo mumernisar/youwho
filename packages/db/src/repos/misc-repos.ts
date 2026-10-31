@@ -25,6 +25,18 @@ export class RateLimitRepo {
     });
   }
 
+  /** Current count in the window without adding to it. */
+  peek(opts: { key: string; windowMs: number; now: Date }): Promise<number> {
+    return guard(async () => {
+      const startMs = Math.floor(opts.now.getTime() / opts.windowMs) * opts.windowMs;
+      const [row] = await this.db
+        .select({ count: rateLimits.count })
+        .from(rateLimits)
+        .where(sql`${rateLimits.key} = ${opts.key} and ${rateLimits.windowStart} = ${new Date(startMs).toISOString()}::timestamptz`);
+      return row?.count ?? 0;
+    });
+  }
+
   /** Drop windows older than a day. Called opportunistically. */
   prune(now: Date): Promise<void> {
     return guard(async () => {

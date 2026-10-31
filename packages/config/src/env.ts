@@ -4,6 +4,8 @@ const secret = z.string().min(32, 'must be at least 32 characters');
 const optionalString = z.preprocess((v) => (v === '' ? undefined : v), z.string().min(1).optional());
 
 const notifyShape = {
+  /** Public base URL of the web app; used for links in owner emails. */
+  SITE_URL: z.preprocess((v) => (v === '' ? undefined : v), z.url().optional()),
   RESEND_API_KEY: optionalString,
   OWNER_EMAIL: optionalString,
   NOTIFY_FROM: optionalString,
@@ -11,7 +13,7 @@ const notifyShape = {
 
 /** With a Resend key set, the owner address and sender must be present too. */
 const requireNotifyPair = (
-  v: { RESEND_API_KEY?: string | undefined; OWNER_EMAIL?: string | undefined; NOTIFY_FROM?: string | undefined },
+  v: { SITE_URL?: string | undefined; RESEND_API_KEY?: string | undefined; OWNER_EMAIL?: string | undefined; NOTIFY_FROM?: string | undefined },
   ctx: z.RefinementCtx,
 ) => {
   if (!v.RESEND_API_KEY) return;
