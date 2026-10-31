@@ -231,7 +231,7 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
         </div>
 
         {findOpen && (
-          <form id="find-seat" role="search" onSubmit={onFind} className="px-1 pt-1 pb-4 sm:max-w-md">
+          <form id="find-seat" role="search" onSubmit={onFind} className="px-1 pt-1 pb-4 sm:ml-auto sm:max-w-md">
             <div className="flex gap-2">
               <label htmlFor="find-roll" className="sr-only">Roll number</label>
               <input
