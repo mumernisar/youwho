@@ -11,7 +11,9 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "format": "prettier --write .",
     "check:decoder": "tsx scripts/check-decoder.ts",
-    "seed:fixture": "tsx scripts/seed-fixture.ts"
+    "seed:fixture": "tsx --env-file=.env scripts/seed-fixture.ts",
+    "db:generate": "pnpm --filter @youwho/db db:generate",
+    "db:migrate": "tsx --env-file=.env scripts/migrate.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -22,6 +24,7 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
     "zod": "4.6.7",
-    "@youwho/core": "workspace:*"
+    "@youwho/core": "workspace:*",
+    "@youwho/db": "workspace:*"
   }
 }

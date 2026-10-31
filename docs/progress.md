@@ -20,4 +20,11 @@ Phases follow spec section 10. Only big phases are logged here.
 - Checked: a corrupted course index fails with `DATA_DECODE_FAILED` naming the student.
 - Finding: three pairs of slots share a date and start time but differ in end time (80 vs 90 minute papers; e.g. `2026-11-03T08:30`). They use the same rooms with no seat collisions, so they are one physical session. Slot key stays `date + start` (the spec); the DB phase adds an `end_time` column to `seats` so a paper keeps its own end time.
 
-## Next: Phase 3 — `db`
+## Phase 3 — `db`: done
+- Drizzle schema + generated migration for every table in section 4 plus `rate_limits` and `scraper_status`. `seats` also stores `end_time`, and `room` is the room name (not an index).
+- `createDb({ url, driver })` with Neon WebSocket pool (web) and postgres.js (scraper, max 2); connection failures become `DB_UNAVAILABLE` through `guard`.
+- Repos: `DatasetRepo` (list, get, transactional replace-save, hard delete that also fails queued jobs), `SeatRepo` (lookup, room view, rooms), `JobRepo` (join-or-create, claim with skip locked, stage/finish/fail guarded by status, boot sweep, queue position), `FeedbackRepo` (confirm toggle, report-once-per-day, counters in the same transaction), `RateLimitRepo`, `ScraperStatusRepo`.
+- Scripts: `pnpm db:migrate` and `pnpm seed:fixture` (local by default, `--neon` targets `NEON_DATABASE_URL`). Local Postgres is on port 5433 because 5432 was taken.
+- Checked on local Postgres: seeding twice does not duplicate, a changed hash replaces rows; lookup, TBA-only student, room view and not-found errors work; confirm toggles from two voters keep the count right; duplicate-URL jobs join; claim is single-winner; rate limit cuts off at the limit; deleting a dataset empties students, seats, votes and reports. Migration and seed also ran against Neon.
+
+## Next: Phase 4 — Web read path
