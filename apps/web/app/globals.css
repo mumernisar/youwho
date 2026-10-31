@@ -516,6 +516,22 @@ body {
   outline-offset: 2px;
   z-index: 2;
 }
+/* The seat a roll-number search found. Thin enough to stay inside the map's edge padding. */
+.seat[data-found='true'] {
+  outline: 2.5px solid var(--brand);
+  outline-offset: 1px;
+  z-index: 3;
+  animation: seat-found 1.2s ease-out 2;
+}
+@keyframes seat-found {
+  0% {
+    outline-offset: 9px;
+    outline-color: transparent;
+  }
+  100% {
+    outline-offset: 1px;
+  }
+}
 .seat[data-me='true'] {
   --fill: var(--accent);
   --back: color-mix(in oklab, var(--accent) 65%, black);
@@ -659,6 +675,9 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .seat[data-found='true'] {
+    animation: none;
+  }
   .seat-ring {
     animation: none;
     opacity: 0.6;

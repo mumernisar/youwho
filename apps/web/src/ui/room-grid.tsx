@@ -4,8 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MIRRORED, type ColourBy, type LegendItem, type RoomModel, type SeatModel } from './room-model';
 import { ColourToggle, Legend } from './room-legend';
 import { SeatPopover } from './seat-popover';
+import { formatRegInput } from './format';
 import { hueStyle } from './palette';
-import { CornerBottomRight, CornerTopRight, Minus, Plus, Target } from './icons';
+import { CornerBottomRight, CornerTopRight, Minus, Plus, Search, X } from './icons';
 
 /** Zoom levels as multiples of the size that fits the card. */
 const ZOOMS = [0.75, 1, 1.25, 1.5, 1.85];
@@ -18,6 +19,17 @@ const PAD = 8;
 /** Narrow maps keep row numbers on the left only, in a thinner column. */
 const NARROW = 480;
 const gapFor = (seat: number) => Math.max(4, seat * 0.22);
+const normReg = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+/** A seat by roll number: the exact number, or the end of one if only one seat in the room matches. */
+function findSeat(seats: SeatModel[], query: string): SeatModel | null {
+  const q = normReg(query);
+  if (!q) return null;
+  const exact = seats.find((s) => normReg(s.reg) === q);
+  if (exact) return exact;
+  const tail = seats.filter((s) => normReg(s.reg).endsWith(q));
+  return tail.length === 1 ? tail[0]! : null;
+}
 
 interface Fit {
   seat: number;
@@ -47,6 +59,11 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
   const root = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
   const anchor = useRef<HTMLElement | null>(null);
+  const [findOpen, setFindOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [found, setFound] = useState<SeatModel | null>(null);
+  const [missed, setMissed] = useState<string | null>(null);
+  const findInput = useRef<HTMLInputElement>(null);
   const seatPx = fit.seat * ZOOMS[zoom]!;
   const mine = model.mySection;
 
@@ -58,18 +75,38 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
   /** Seat numbers in screen order, left to right. */
   const cols = useMemo(() => Array.from({ length: dims.cols }, (_, i) => (MIRRORED ? dims.cols - i : i + 1)), [dims.cols]);
 
-  /** On load only the map pans to your seat; the button also brings the map into view. */
-  const findMe = useCallback((fromButton: boolean) => {
-    const el = root.current?.querySelector<HTMLElement>('[data-me="true"]');
+  /** Centres a seat in the map. On load it pans to your seat; a search also brings the map into view. */
+  const reveal = useCallback((selector: string, fromSearch: boolean) => {
+    const el = root.current?.querySelector<HTMLElement>(selector);
     const box = scroller.current;
-    if (!el || !box) return;
+    if (!el) return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const behavior = fromButton && !reduce ? 'smooth' : 'auto';
+    const behavior = fromSearch && !reduce ? 'smooth' : 'auto';
+    // Seats in the lists under the map are not inside the scroller.
+    if (!box || !box.contains(el)) return void (fromSearch && el.scrollIntoView({ block: 'center', behavior }));
     const a = el.getBoundingClientRect();
     const b = box.getBoundingClientRect();
     box.scrollTo({ left: box.scrollLeft + a.left - b.left - (b.width - a.width) / 2, top: box.scrollTop + a.top - b.top - (b.height - a.height) / 2, behavior });
-    if (fromButton) box.scrollIntoView({ block: 'nearest', behavior });
+    if (fromSearch) box.scrollIntoView({ block: 'nearest', behavior });
   }, []);
+  const findMe = useCallback(() => reveal('[data-me="true"]', false), [reveal]);
+  const allSeats = useMemo(() => [...grid, ...extras, ...clash, ...others], [grid, extras, clash, others]);
+  useEffect(() => {
+    if (found) reveal('[data-found="true"]', true);
+  }, [found, reveal]);
+  const onFind = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!normReg(query)) return;
+    const hit = findSeat(allSeats, query);
+    setFound(hit);
+    setMissed(hit ? null : query.trim().toUpperCase());
+  };
+  const closeFind = () => {
+    setFindOpen(false);
+    setQuery('');
+    setFound(null);
+    setMissed(null);
+  };
   useEffect(() => {
     const el = scroller.current;
     if (!el) return;
@@ -79,7 +116,7 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
     ro.observe(el);
     return () => ro.disconnect();
   }, [dims.cols]);
-  useEffect(() => findMe(false), [findMe, fit]);
+  useEffect(() => findMe(), [findMe, fit]);
 
   const describe = (s: SeatModel) => {
     const c = model.courseInfo[s.course];
@@ -114,6 +151,7 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
       'data-tex': it?.tex ?? 0,
       'data-me': s.me,
       'data-dim': spot !== null && keyOf(s) !== spot,
+      'data-found': found?.id === s.id,
       'data-seat': '',
       'aria-pressed': open?.id === s.id,
       'aria-label': describe(s),
@@ -129,7 +167,7 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
     const c = model.courseInfo[s.course];
     return (
       <li key={s.id}>
-        <button type="button" {...seatProps(s)} className={`flex w-full items-center gap-3 rounded-xl border border-line bg-surface p-3 text-left transition hover:border-brand ${spot !== null && keyOf(s) !== spot ? 'opacity-30' : ''}`}>
+        <button type="button" {...seatProps(s)} className={`flex w-full items-center gap-3 rounded-xl border border-line bg-surface p-3 text-left transition hover:border-brand data-[found=true]:border-brand data-[found=true]:ring-2 data-[found=true]:ring-brand ${spot !== null && keyOf(s) !== spot ? 'opacity-30' : ''}`}>
           <span className="mini-seat" data-tex={byKey.get(keyOf(s))?.tex ?? 0} data-me={s.me} style={hueStyle(byKey.get(keyOf(s))?.hue ?? 0)}>
             {tag(s)}
           </span>
@@ -172,12 +210,16 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
             )}
           </div>
           <div className="flex items-center gap-2">
-            {me && me.row > 0 && (
-              <button type="button" onClick={() => findMe(true)} className="btn btn-secondary btn-sm">
-                <Target className="h-4 w-4" />
-                Find me
-              </button>
-            )}
+            <button
+              type="button"
+              aria-expanded={findOpen}
+              aria-controls="find-seat"
+              onClick={() => (findOpen ? closeFind() : (setFindOpen(true), requestAnimationFrame(() => findInput.current?.focus())))}
+              className="btn btn-secondary btn-sm"
+            >
+              <Search className="h-4 w-4" />
+              Find
+            </button>
             {grid.length > 0 && (
               <div className="flex items-center rounded-xl ring-1 ring-line">
                 <button type="button" aria-label="Zoom out" disabled={zoom === 0} onClick={() => setZoom((z) => z - 1)} className="btn btn-quiet btn-sm btn-icon h-9 min-h-9 w-9 rounded-r-none"><Minus className="h-4 w-4" /></button>
@@ -187,6 +229,45 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
             )}
           </div>
         </div>
+
+        {findOpen && (
+          <form id="find-seat" role="search" onSubmit={onFind} className="px-1 pb-3">
+            <div className="flex gap-2">
+              <label htmlFor="find-roll" className="sr-only">Roll number</label>
+              <input
+                ref={findInput}
+                id="find-roll"
+                value={query}
+                onChange={(e) => {
+                  setQuery(formatRegInput(e.target.value));
+                  setMissed(null);
+                }}
+                onKeyDown={(e) => e.key === 'Escape' && closeFind()}
+                placeholder="Roll number, e.g. FA24-BSE-058"
+                autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+                enterKeyHint="search"
+                className="field min-h-10 min-w-0 flex-1 font-mono text-sm"
+              />
+              <button type="submit" className="btn btn-primary btn-sm min-h-10">Find</button>
+              <button type="button" onClick={closeFind} aria-label="Close search" className="btn btn-quiet btn-sm btn-icon h-10 min-h-10 w-10">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p aria-live="polite" className="mt-2 min-h-5 text-sm">
+              {missed ? (
+                <span className="font-semibold text-danger">Not in this room</span>
+              ) : found ? (
+                <button type="button" onClick={() => reveal('[data-found="true"]', true)} className="text-left">
+                  <span className="font-semibold">{found.name}</span>
+                  <span className="text-muted"> · {found.label}</span>
+                  {found.me && <span className="you-chip ml-2">You</span>}
+                </button>
+              ) : null}
+            </p>
+          </form>
+        )}
 
         {grid.length > 0 ? (
           <div ref={scroller} className="room-floor max-h-[78dvh] overflow-auto">
