@@ -27,7 +27,8 @@ export function createScraperClient(env: { SCRAPER_URL: string; SCRAPER_SECRET: 
       }
     },
     async wake() {
-      // A cold Render instance takes up to a minute to answer. The request is enough to start it.
+      // A sleeping Heroku Eco dyno takes 10–30 seconds to boot. Heroku starts it as soon as the
+      // request arrives, so a short timeout is fine: the request only has to arrive.
       await fetch(`${base}/health`, { signal: AbortSignal.timeout(1500) }).catch(() => {});
     },
   };

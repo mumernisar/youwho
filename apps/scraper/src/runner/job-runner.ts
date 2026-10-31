@@ -17,6 +17,8 @@ export interface RunnerDeps {
 }
 
 const HARD_EXIT_GRACE_MS = 30_000;
+/** Below the web app's 30-second "seen" window, so a busy scraper never reads as asleep. */
+const SEEN_EVERY_MS = 10_000;
 
 /** Catalog message, plus the path or reason for data problems. Never student names or causes. */
 function storedMessage(err: AppError): string {
@@ -96,6 +98,7 @@ export function createRunner(deps: RunnerDeps) {
       return;
     }
     running = true;
+    const seen = setInterval(() => void repos.scraperStatus.touch(deps.now()).catch((e) => log.warn({ err: e }, 'status write failed')), SEEN_EVERY_MS);
     try {
       do {
         again = false;
@@ -109,6 +112,7 @@ export function createRunner(deps: RunnerDeps) {
     } catch (e) {
       log.error({ err: e }, 'drain failed');
     } finally {
+      clearInterval(seen);
       running = false;
     }
   }
