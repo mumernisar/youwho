@@ -427,6 +427,8 @@ body {
 }
 .room[data-axes='1'] .room-grid {
   grid-template-columns: var(--axis) repeat(var(--cols), var(--seat));
+  /* Phones: seats are narrow, so rows get extra room to make a tap land on the right one. */
+  row-gap: max(12px, calc(var(--gap) * 2.5));
 }
 .room-axis {
   font: 500 0.6875rem var(--font-mono);

@@ -193,7 +193,7 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
     <div
       ref={root}
       className="room mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]"
-      style={{ '--cols': Math.max(dims.cols, 1), '--seat': `${Math.round(seatPx)}px`, '--gap': `${Math.round(gapFor(seatPx))}px`, '--axis': `${fit.axis}px` } as React.CSSProperties}
+      style={{ '--cols': Math.max(dims.cols, 1), '--seat': `${Math.floor(seatPx)}px`, '--gap': `${Math.floor(gapFor(seatPx))}px`, '--axis': `${fit.axis}px` } as React.CSSProperties}
       data-small={seatPx < SMALL_SEAT}
       data-axes={fit.bothAxes ? 2 : 1}
       {...(spot !== null ? { 'data-spot': spot } : {})}
@@ -231,7 +231,7 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
         </div>
 
         {findOpen && (
-          <form id="find-seat" role="search" onSubmit={onFind} className="px-1 pb-3">
+          <form id="find-seat" role="search" onSubmit={onFind} className="px-1 pt-1 pb-4 sm:max-w-md">
             <div className="flex gap-2">
               <label htmlFor="find-roll" className="sr-only">Roll number</label>
               <input
@@ -243,7 +243,7 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
                   setMissed(null);
                 }}
                 onKeyDown={(e) => e.key === 'Escape' && closeFind()}
-                placeholder="Roll number, e.g. FA24-BSE-058"
+                placeholder="e.g. FA24-BSE-058"
                 autoComplete="off"
                 autoCapitalize="characters"
                 spellCheck={false}
@@ -255,7 +255,7 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p aria-live="polite" className="mt-2 min-h-5 text-sm">
+            <p aria-live="polite" className="mt-2.5 text-sm empty:mt-0">
               {missed ? (
                 <span className="font-semibold text-danger">Not in this room</span>
               ) : found ? (
