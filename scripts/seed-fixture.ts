@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { parseRawPlan, selectDecoder, slugFromSourceUrl } from '@youwho/core';
-import { createDb, DatasetRepo } from '@youwho/db';
+import { DatasetRepo } from '@youwho/db';
+import { createDb } from '@youwho/db/client';
 import { scriptDb } from './db-url';
 
 const dir = fileURLToPath(new URL('../packages/core/fixtures/', import.meta.url));

@@ -1,11 +1,11 @@
-import type { Db } from './client';
+import type { Db } from './client-types';
 import { DatasetRepo } from './repos/dataset-repo';
 import { FeedbackRepo } from './repos/feedback-repo';
 import { JobRepo } from './repos/job-repo';
 import { RateLimitRepo, ScraperStatusRepo } from './repos/misc-repos';
 import { SeatRepo } from './repos/seat-repo';
 
-export * from './client';
+export type { Db, DbDriver, DbHandle } from './client-types';
 export * from './types';
 export * from './migrate';
 export { guard } from './translate';

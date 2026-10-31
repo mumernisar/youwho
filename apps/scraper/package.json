@@ -1,0 +1,25 @@
+{
+  "name": "@youwho/scraper",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file=../../.env src/main.ts",
+    "build": "tsc -p tsconfig.json --noEmit && tsup",
+    "start": "node --max-old-space-size=160 dist/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev:fixture-site": "node dev/iframe-fixture/server.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.64.1",
+    "postgres": "4.0.0"
+  },
+  "devDependencies": {
+    "tsup": "9.0.0",
+    "@youwho/core": "workspace:*",
+    "@youwho/db": "workspace:*",
+    "@youwho/errors": "workspace:*",
+    "@youwho/config": "workspace:*",
+    "@youwho/notify": "workspace:*"
+  }
+}

@@ -1,6 +1,7 @@
 import 'server-only';
 import { createHash, randomUUID } from 'node:crypto';
-import { createDb, createRepos, type DbHandle, type Repos } from '@youwho/db';
+import { createRepos, type DbHandle, type Repos } from '@youwho/db';
+import { createDb } from '@youwho/db/client';
 import { createLogger, loadWebEnv, type Logger, type WebEnv } from '@youwho/config';
 import { DatasetService } from './services/datasets';
 import { LookupService } from './services/lookup';

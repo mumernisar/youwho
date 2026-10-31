@@ -1,5 +1,5 @@
 import { and, asc, count, eq, lt, sql } from 'drizzle-orm';
-import type { Db } from '../client';
+import type { Db } from '../client-types';
 import { guard, isUniqueViolation } from '../translate';
 import { jobs } from '../schema';
 

@@ -1,7 +1,7 @@
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { fail } from '@youwho/errors';
 import { parseSpecialLabel, roomSlug } from '@youwho/core';
-import type { Db } from '../client';
+import type { Db } from '../client-types';
 import { guard } from '../translate';
 import { datasets, seats, students } from '../schema';
 import type { LookupResult, Paper, RoomSeat, RoomSummary, RoomView } from '../types';

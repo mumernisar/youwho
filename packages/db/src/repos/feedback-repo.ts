@@ -1,6 +1,6 @@
 import { and, desc, eq, gt, sql } from 'drizzle-orm';
 import { fail } from '@youwho/errors';
-import type { Db } from '../client';
+import type { Db } from '../client-types';
 import { guard } from '../translate';
 import { confirmations, datasets, reports } from '../schema';
 

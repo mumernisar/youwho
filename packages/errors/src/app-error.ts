@@ -34,8 +34,8 @@ export class AppError<C extends ErrorCode = ErrorCode> extends Error {
 
 export const fail = <C extends ErrorCode>(
   code: C,
-  ...args: DetailsOf<C> extends undefined
-    ? [opts?: { message?: string; cause?: unknown }]
+  ...args: undefined extends DetailsOf<C>
+    ? [opts?: { details?: DetailsOf<C>; message?: string; cause?: unknown }]
     : [opts: { details: DetailsOf<C>; message?: string; cause?: unknown }]
 ): never => {
   throw new AppError(code, args[0] ?? {});

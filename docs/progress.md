@@ -35,4 +35,13 @@ Phases follow spec section 10. Only big phases are logged here.
 - Fixes found while testing: `AppError` now carries a brand so `isAppError` works when a bundler loads the errors package twice (SSR and route handlers); relative imports in packages lost their `.js` suffix because Turbopack does not map them to `.ts`; the lint rule for client code now allows type-only imports from `server/`.
 - Checked: lookups with lowercase and no dashes redirect to the canonical form; bad and unknown numbers show the catalog message; unknown room or department gives 404; the room view carries your seat (`data-me`), labels like "Row 3, seat 5, CSC322 …"; `next build` passes. Visual check at phone width was only done with headless Chrome (minimum window width is wider than 360), so real 360 px and Paper/Chalkboard checks are left for you or Phase 9.
 
-## Next: Phase 5 — Scraper service
+## Phase 5 — Scraper service: done
+- `apps/scraper`: `PageSource` interface with `FixturePageSource` and `PlaywrightPageSource` (headless shell, blocked resource types and hosts, redirect-to-sign-in check, frame polling with scroll, 5 MB cap, abort closes the browser; gives up with `SOURCE_NO_DATA` after 45 s of not finding the data).
+- Pipeline steps (`decodeStep`, `persistStep`), runner (claim with `skip locked`, deadline `JOB_LIMIT_MS`, serialised stage writes that refresh the heartbeat, hard exit 30 s after the deadline, boot sweep, single-flight drain), `node:http` server with `/health` and `/kick` (constant-time bearer check), composition root in `main.ts`, bundled with tsup into one file (runtime deps: `playwright`, `postgres`).
+- Job `stage` values: `opening`, `extracting`, `checking`, `saving:<seat count>`. Fixture mode can simulate failures by URL (`missing-*`, `private-*`, `broken-*`, `unreachable-*`, `slow-*`).
+- `packages/notify` now has the `Notifier` interface, event types and console notifier (Resend arrives in Phase 8). `@youwho/db` is split into subpaths (`/client`, `/postgres`, `/neon`) so the scraper never loads the Neon driver.
+- Dockerfile (root context), `.dockerignore`, `render.yaml`, and `apps/scraper/dev/iframe-fixture` (three nested iframes across two origins).
+- Checked locally: a fixture job reaches done; with `JOB_LIMIT_MS=5000` a slow job fails `SCRAPE_TIMEOUT` after 5.0 s and the next queued job still runs; every fixture error URL stores its catalog code; killing the process mid-job and restarting marks the job `SCRAPER_RESTARTED`; the Playwright source finds the data through the nested iframes; a real scrape of the CS Google Sites page succeeded both natively (5.2 s) and inside the Docker image under a 512 MB limit (4.8 s, about 192 MiB peak sampled).
+- Not done (needs your Render account): deploying to Render and one real scrape from there.
+
+## Next: Phase 6 — Add and refresh flow

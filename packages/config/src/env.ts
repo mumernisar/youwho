@@ -41,6 +41,11 @@ export const scraperEnvSchema = z
     PAGE_SOURCE: z.enum(['playwright', 'fixture']).default('playwright'),
     JOB_LIMIT_MS: z.coerce.number().int().positive().default(180_000),
     PORT: z.coerce.number().int().positive().default(8080),
+    /** Fixture mode: where the sample files live, and an artificial delay to exercise the timeout path. */
+    FIXTURE_DIR: optionalString,
+    FIXTURE_DELAY_MS: z.coerce.number().int().nonnegative().default(0),
+    /** Development only: let the Playwright source visit localhost (the nested-iframe fixture site). */
+    DEV_ALLOW_LOCALHOST: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
     ...notifyShape,
   })
   .superRefine(requireNotifyPair);

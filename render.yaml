@@ -1,0 +1,25 @@
+# Render blueprint for the scraper (free plan). Secrets are set in the Render dashboard.
+services:
+  - type: web
+    name: youwho-scraper
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SCRAPER_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: OWNER_EMAIL
+        sync: false
+      - key: NOTIFY_FROM
+        sync: false
+      - key: PAGE_SOURCE
+        value: playwright
+      - key: JOB_LIMIT_MS
+        value: '180000'

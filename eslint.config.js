@@ -14,6 +14,8 @@ export default tseslint.config(
   { ignores: ['**/node_modules/**', '**/dist/**', '**/.next/**', 'docs/**', '**/fixtures/**'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
+  // Plain Node scripts (development aids)
+  { files: ['**/*.mjs'], languageOptions: { globals: { URL: 'readonly', console: 'readonly' } } },
   {
     rules: {
       'no-restricted-syntax': ['error', noThrowError],

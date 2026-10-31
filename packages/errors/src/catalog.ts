@@ -53,7 +53,7 @@ export interface ErrorDetails {
   RATE_LIMITED: { retryAfterSec: number };
   REFRESH_COOLDOWN: { retryAfterSec: number };
   DATASET_NOT_FOUND: { slug: string };
-  SOURCE_UNREACHABLE: { httpStatus?: number };
+  SOURCE_UNREACHABLE: { httpStatus?: number } | undefined;
 }
 
 export type DetailsOf<C extends ErrorCode> = C extends keyof ErrorDetails ? ErrorDetails[C] : undefined;

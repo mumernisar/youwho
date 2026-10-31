@@ -1,5 +1,5 @@
 import { eq, sql } from 'drizzle-orm';
-import type { Db } from '../client';
+import type { Db } from '../client-types';
 import { guard } from '../translate';
 import { rateLimits, scraperStatus } from '../schema';
 

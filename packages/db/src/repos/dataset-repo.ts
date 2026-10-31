@@ -1,6 +1,6 @@
 import { desc, eq, inArray, sql } from 'drizzle-orm';
 import type { DecodedPlan } from '@youwho/core';
-import type { Db } from '../client';
+import type { Db } from '../client-types';
 import { guard } from '../translate';
 import { datasets, jobs, seats, students } from '../schema';
 import type { Dataset, DatasetFull, SaveResult } from '../types';
