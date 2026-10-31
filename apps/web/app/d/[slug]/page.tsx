@@ -4,6 +4,7 @@ import { getServices } from '@/server/services';
 import { viewerHash } from '@/server/voter';
 import { loadPage } from '@/server/page-data';
 import { ErrorState } from '@/ui/error-state';
+import { RefreshButton } from '@/ui/refresh-button';
 import { SourceNotice } from '@/ui/source-notice';
 import { count, fmtDate, fmtTime } from '@/ui/format';
 
@@ -24,6 +25,9 @@ export default async function Department({ params }: { params: Promise<{ slug: s
         {count(dataset.students)} students · {count(dataset.seats)} seats · updated {dataset.stamp}
       </p>
       <div className="mt-4"><SourceNotice dataset={dataset} /></div>
+      <div className="mt-4">
+        <RefreshButton url={dataset.sourceUrl} waitMin={Math.max(0, Math.ceil((new Date(dataset.updatedAt).getTime() + 10 * 60_000 - Date.now()) / 60_000))} />
+      </div>
       {warnings.length > 0 && (
         <ul className="mt-3 list-disc pl-5 text-sm text-muted">{warnings.map((w) => <li key={w}>{w}</li>)}</ul>
       )}

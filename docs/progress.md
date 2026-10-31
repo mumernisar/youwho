@@ -44,4 +44,12 @@ Phases follow spec section 10. Only big phases are logged here.
 - Checked locally: a fixture job reaches done; with `JOB_LIMIT_MS=5000` a slow job fails `SCRAPE_TIMEOUT` after 5.0 s and the next queued job still runs; every fixture error URL stores its catalog code; killing the process mid-job and restarting marks the job `SCRAPER_RESTARTED`; the Playwright source finds the data through the nested iframes; a real scrape of the CS Google Sites page succeeded both natively (5.2 s) and inside the Docker image under a 512 MB limit (4.8 s, about 192 MiB peak sampled).
 - Not done (needs your Render account): deploying to Render and one real scrape from there.
 
-## Next: Phase 6 — Add and refresh flow
+## Phase 6 — Add and refresh flow: done
+- `POST /api/jobs`, `GET /api/jobs/[id]`, `POST /api/scraper/wake`. `ScraperClient` (kick with 3 s timeout, failures logged and ignored, wake via `/health`) behind an interface; `JobService` does canonicalize → on-board check → join active job → refresh cooldown (10 min since `updated_at`) → queue cap (20) → per-requester limit (3/hour) → create and kick.
+- Status endpoint: queue position, `waking` (scraper not seen for 30 s), re-kick at most every 15 s per job, web-side sweeps (running with heartbeat older than 4 min → `SCRAPER_STALLED`, queued older than 15 min → `SCRAPER_UNAVAILABLE`), stored error code and message returned through the public envelope.
+- UI: Add sheet (Radix Dialog) with URL field, status card (state line, elapsed timer, four-tick progress rule, Open department, Try again when retryable), toast that tracks the job after the sheet closes (job id kept in `sessionStorage`), "Add your department" link on the board, Refresh button with cooldown note on the department page.
+- Checked end to end with the web app and the scraper in fixture mode: an invalid link gives `INVALID_SOURCE_URL`; adding a department already on the board returns it; two concurrent submits of the same URL (one with different case and a query string) return one job; the job reaches done and the dataset appears; a second refresh inside 10 minutes returns `REFRESH_COOLDOWN` with the seconds left; the fourth job within an hour returns `RATE_LIMITED`; an unknown job id returns `JOB_NOT_FOUND`.
+- Known rough edge: two simultaneous submits of one URL each use one of the requester's three hourly slots, even though they share a job.
+- Not checked in a real browser: the sheet and toast interactions (typecheck, lint and the API behind them are verified).
+
+## Next: Phase 7 — Confirmations and reports

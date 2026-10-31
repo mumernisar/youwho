@@ -5,7 +5,9 @@ import { createDb } from '@youwho/db/client';
 import { createLogger, loadWebEnv, type Logger, type WebEnv } from '@youwho/config';
 import { DatasetService } from './services/datasets';
 import { LookupService } from './services/lookup';
+import { JobService } from './services/jobs';
 import { RoomService } from './services/rooms';
+import { createScraperClient, type ScraperClient } from './scraper-client';
 
 export interface Services {
   env: WebEnv;
@@ -17,6 +19,8 @@ export interface Services {
   lookup: LookupService;
   rooms: RoomService;
   datasets: DatasetService;
+  jobs: JobService;
+  scraper: ScraperClient;
 }
 
 /** Composition root: built once per server instance. */
@@ -28,6 +32,7 @@ export function createServices(env: WebEnv): Services {
   const now = () => new Date();
   const hash = (v: string) => createHash('sha256').update(env.HASH_SALT + v).digest('hex');
   const datasets = new DatasetService(repos);
+  const scraper = createScraperClient(env, log);
   return {
     env,
     log,
@@ -36,6 +41,8 @@ export function createServices(env: WebEnv): Services {
     hash,
     newId: randomUUID,
     datasets,
+    scraper,
+    jobs: new JobService({ repos, datasets, scraper, now }),
     lookup: new LookupService(repos, datasets),
     rooms: new RoomService(repos, datasets),
   };

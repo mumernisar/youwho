@@ -45,6 +45,13 @@ export class JobRepo {
     });
   }
 
+  findActive(sourceUrl: string): Promise<Job | null> {
+    return guard(async () => {
+      const [row] = await this.db.select().from(jobs).where(and(eq(jobs.sourceUrl, sourceUrl), ACTIVE)).limit(1);
+      return row ? toJob(row) : null;
+    });
+  }
+
   /** Insert a job, or join the active job for the same URL when the unique index says one exists. */
   createOrJoin(input: { sourceUrl: string; kind: 'add' | 'refresh'; datasetId: string | null; requesterHash: string; now: Date }): Promise<{ job: Job; joined: boolean }> {
     return guard(async () => {

@@ -36,6 +36,13 @@ export class DatasetRepo {
     });
   }
 
+  slugById(id: string): Promise<string | null> {
+    return guard(async () => {
+      const [row] = await this.db.select({ slug: datasets.slug }).from(datasets).where(eq(datasets.id, id)).limit(1);
+      return row?.slug ?? null;
+    });
+  }
+
   getBySourceUrl(url: string): Promise<Dataset | null> {
     return guard(async () => {
       const [row] = await this.db.select().from(datasets).where(eq(datasets.sourceUrl, url)).limit(1);

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { cookies } from 'next/headers';
 import { IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google';
+import { AddDepartmentProvider } from '@/ui/add-department';
 import { Header } from '@/ui/header';
 import './globals.css';
 
@@ -23,8 +24,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable}`} {...(theme ? { 'data-theme': theme } : {})}>
       <body className="font-sans antialiased">
-        <Header theme={theme} />
-        <main className="mx-auto w-full max-w-3xl px-4 pb-24">{children}</main>
+        <AddDepartmentProvider>
+          <Header theme={theme} />
+          <main className="mx-auto w-full max-w-3xl px-4 pb-24">{children}</main>
+        </AddDepartmentProvider>
       </body>
     </html>
   );

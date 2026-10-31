@@ -18,6 +18,8 @@ interface Ctx<I> {
   req: NextRequest;
   requestId: string;
   voter: VoterId;
+  /** Hashed client address, for per-requester limits. */
+  ipHash: string;
 }
 
 const clientIp = (req: NextRequest): string =>
@@ -65,7 +67,7 @@ export function route<I = undefined, O = unknown>(opts: {
         input = parsed.data;
       }
 
-      const data = await opts.handler({ input, services, req, requestId, voter });
+      const data = await opts.handler({ input, services, req, requestId, voter, ipHash: services.hash(`ip:${clientIp(req)}`) });
       const res = NextResponse.json({ ok: true, data });
       if (voter.isNew) setVoterCookie(res, voter);
       return res;

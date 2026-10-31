@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getServices } from '@/server/services';
 import { viewerHash } from '@/server/voter';
 import { loadPage } from '@/server/page-data';
+import { AddDepartmentLink } from '@/ui/add-link';
 import { RollForm } from '@/ui/roll-form';
 import { ErrorState } from '@/ui/error-state';
 import { count, fmtUpdated, sourceHost } from '@/ui/format';
@@ -41,7 +42,7 @@ export default async function Home() {
             ))}
           </ul>
         )}
-        <p className="mt-6 text-sm text-muted">Adding departments is coming soon.</p>
+        <div className="mt-4"><AddDepartmentLink /></div>
       </section>
     </>
   );
