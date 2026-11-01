@@ -210,11 +210,38 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
     >
       {aside && <div className="lg:hidden">{aside}</div>}
       <section className="card min-w-0 p-2 sm:p-4" aria-label="Seating plan">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-3">
-          <div>
-            <h2 className="text-base font-bold">Seating plan</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-3 sm:items-start">
+          <div className="min-w-0">
+            {official.grid.length > 0 ? (
+              <>
+                <h2 className="sr-only">Seating plan</h2>
+                {/* The view switch doubles as the card's title, so it costs no extra row. */}
+                <div role="tablist" aria-label="Seating view" className="inline-flex rounded-xl bg-surface-2 p-1 ring-1 ring-line">
+                  {(
+                    [
+                      ['plan', 'Official plan'],
+                      ['roll', 'Roll order'],
+                    ] as const
+                  ).map(([v, label]) => (
+                    <button
+                      key={v}
+                      type="button"
+                      role="tab"
+                      aria-selected={layout === v}
+                      aria-controls="seat-map"
+                      onClick={() => changeLayout(v)}
+                      className="min-h-8 rounded-lg px-3 text-sm font-bold text-muted transition aria-selected:bg-surface aria-selected:text-ink aria-selected:shadow"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <h2 className="text-base font-bold">Seating plan</h2>
+            )}
             {grid.length > 0 && (
-              <p className="text-xs text-muted">
+              <p className="mt-1.5 text-xs text-muted">
                 {MIRRORED ? 'Left and right as the invigilator at the front sees it. Seat 1 is on your right.' : 'Seat 1 is on your left as you face the front.'}
               </p>
             )}
@@ -239,34 +266,6 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
             )}
           </div>
         </div>
-
-        {official.grid.length > 0 && (
-          <div role="tablist" aria-label="Seating view" className="mx-1 mb-3 grid grid-cols-2 rounded-xl bg-surface-2 p-1 ring-1 ring-line sm:inline-grid">
-            {(
-              [
-                ['plan', 'Official plan'],
-                ['roll', 'Roll order'],
-              ] as const
-            ).map(([v, label]) => (
-              <button
-                key={v}
-                type="button"
-                role="tab"
-                aria-selected={layout === v}
-                aria-controls="seat-map"
-                onClick={() => changeLayout(v)}
-                className="min-h-9 rounded-lg px-4 text-sm font-semibold text-muted transition aria-selected:bg-surface aria-selected:text-ink aria-selected:shadow"
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        )}
-        {layout === 'roll' && (
-          <p className="mx-1 mb-3 rounded-xl border border-line bg-brand-soft px-3 py-2.5 text-sm text-ink-2">
-            <b className="font-semibold text-ink">Not the published seating.</b> Students re-seated by roll number, subjects in alternate columns. Go by the official plan on exam day.
-          </p>
-        )}
 
         {findOpen && (
           <form id="find-seat" role="search" onSubmit={onFind} className="px-1 pt-1 pb-4 sm:ml-auto sm:max-w-md">
@@ -310,8 +309,9 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
         {grid.length > 0 ? (
           <div ref={scroller} id="seat-map" role="tabpanel" aria-label={layout === 'roll' ? 'Roll order' : 'Official plan'} className="room-floor max-h-[78dvh] overflow-auto">
             <div className="room-canvas">
-              <div aria-hidden className={`room-corner-row ${MIRRORED ? 'justify-end' : 'justify-start'}`}>
-                <span className="room-corner" title="Front left, where seat 1 of row 1 is">
+              <div className={`room-corner-row ${MIRRORED ? 'flex-row' : 'flex-row-reverse'}`}>
+                {layout === 'roll' ? <span className="room-note">Roll order · <span className="note-long">not the published seating</span><span className="note-short">not official</span></span> : <span />}
+                <span aria-hidden className="room-corner" title="Front left, where seat 1 of row 1 is">
                   <CornerTopRight className={`h-3 w-3 ${MIRRORED ? '' : '-scale-x-100'}`} />
                   Front left
                 </span>

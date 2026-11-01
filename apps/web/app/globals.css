@@ -390,10 +390,18 @@ body {
 /* Corner markers line up with the board's ends, so they sit over the outer seats. */
 .room-corner-row {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  /* Takes the board's width without widening the map: a zero width adds nothing to the canvas's
+     max-content size, and the min-width then stretches it to the full row. */
+  width: 0;
+  min-width: calc(100% - 2 * (var(--axis) + var(--gap)));
   margin: 0 calc(var(--axis) + var(--gap)) 0.4rem;
 }
 .room[data-axes='1'] .room-corner-row {
   margin-right: 0;
+  min-width: calc(100% - var(--axis) - var(--gap));
 }
 .room-back {
   display: flex;
@@ -403,6 +411,24 @@ body {
 }
 .room[data-axes='1'] .room-back {
   margin-right: 0;
+}
+/* Roll order's reminder, on the free side of the front corner marker; shorter on narrow maps. */
+.room-note .note-short,
+.room[data-axes='1'] .room-note .note-long {
+  display: none;
+}
+.room[data-axes='1'] .room-note .note-short {
+  display: inline;
+}
+.room-note {
+  min-width: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.4;
 }
 .room-corner {
   display: inline-flex;
