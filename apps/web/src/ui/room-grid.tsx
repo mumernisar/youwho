@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MIRRORED, type ColourBy, type LegendItem, type RoomModel, type SeatModel } from './room-model';
 import { ColourToggle, Legend } from './room-legend';
 import { SeatPopover } from './seat-popover';
+import { rollOrderModel } from './roll-order';
 import { formatRegInput } from './format';
 import { hueStyle } from './palette';
 import { CornerBottomRight, CornerTopRight, Minus, Plus, Search, X } from './icons';
@@ -49,7 +50,12 @@ function fitRoom(width: number, cols: number): Fit {
   return { seat: Math.max(MIN_SEAT, Math.min(MAX_SEAT, s)), axis, bothAxes };
 }
 
-export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomName: string; aside?: React.ReactNode }) {
+type Layout = 'plan' | 'roll';
+
+export function RoomGrid({ model: official, roomName, aside }: { model: RoomModel; roomName: string; aside?: React.ReactNode }) {
+  // Roll order re-seats the same students on the same grid; the published plan is the default.
+  const [layout, setLayout] = useState<Layout>('plan');
+  const model = useMemo(() => (layout === 'roll' ? rollOrderModel(official) : official), [layout, official]);
   const { dims, grid, extras, clash, others, me } = model;
   const [by, setBy] = useState<ColourBy>('course');
   const [spot, setSpot] = useState<string | null>(null);
@@ -116,7 +122,11 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
     ro.observe(el);
     return () => ro.disconnect();
   }, [dims.cols]);
-  useEffect(() => findMe(), [findMe, fit]);
+  useEffect(() => findMe(), [findMe, fit, layout]);
+  const changeLayout = (v: Layout) => {
+    setLayout(v);
+    setOpen(null);
+  };
 
   const describe = (s: SeatModel) => {
     const c = model.courseInfo[s.course];
@@ -230,6 +240,34 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
           </div>
         </div>
 
+        {official.grid.length > 0 && (
+          <div role="tablist" aria-label="Seating view" className="mx-1 mb-3 grid grid-cols-2 rounded-xl bg-surface-2 p-1 ring-1 ring-line sm:inline-grid">
+            {(
+              [
+                ['plan', 'Official plan'],
+                ['roll', 'Roll order'],
+              ] as const
+            ).map(([v, label]) => (
+              <button
+                key={v}
+                type="button"
+                role="tab"
+                aria-selected={layout === v}
+                aria-controls="seat-map"
+                onClick={() => changeLayout(v)}
+                className="min-h-9 rounded-lg px-4 text-sm font-semibold text-muted transition aria-selected:bg-surface aria-selected:text-ink aria-selected:shadow"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+        {layout === 'roll' && (
+          <p className="mx-1 mb-3 rounded-xl border border-line bg-brand-soft px-3 py-2.5 text-sm text-ink-2">
+            <b className="font-semibold text-ink">Not the published seating.</b> Students re-seated by roll number, subjects in alternate columns. Go by the official plan on exam day.
+          </p>
+        )}
+
         {findOpen && (
           <form id="find-seat" role="search" onSubmit={onFind} className="px-1 pt-1 pb-4 sm:ml-auto sm:max-w-md">
             <div className="flex gap-2">
@@ -270,7 +308,7 @@ export function RoomGrid({ model, roomName, aside }: { model: RoomModel; roomNam
         )}
 
         {grid.length > 0 ? (
-          <div ref={scroller} className="room-floor max-h-[78dvh] overflow-auto">
+          <div ref={scroller} id="seat-map" role="tabpanel" aria-label={layout === 'roll' ? 'Roll order' : 'Official plan'} className="room-floor max-h-[78dvh] overflow-auto">
             <div className="room-canvas">
               <div aria-hidden className={`room-corner-row ${MIRRORED ? 'justify-end' : 'justify-start'}`}>
                 <span className="room-corner" title="Front left, where seat 1 of row 1 is">
