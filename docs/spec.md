@@ -1,6 +1,6 @@
 # youwho — build spec
 
-Oct 31, 2026 · @Anas
+Oct 31, 2026 · @Umer
 
 ## 1. Overview and scope
 
