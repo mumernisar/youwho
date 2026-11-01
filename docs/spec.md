@@ -43,7 +43,7 @@ The extracted file `mid_term_seating_extracted.json` (CS mid-terms, 2–9 Nov 20
 
 ## 2. Architecture and main flows
 
-The web app on Vercel serves every page and every lookup straight from Neon. The scraper on Render is a separate, private service that only wakes for add and refresh jobs. The two share nothing but the database and a bearer secret.
+The web app on Vercel serves every page and every lookup straight from Neon. Its functions run in `sin1` (`apps/web/vercel.json`), the same region as the Neon database, since every page makes several database round trips. The scraper on Render is a separate, private service that only wakes for add and refresh jobs. The two share nothing but the database and a bearer secret.
 
 &#91;embedded content: youwho architecture · 2 apps, 1 database, 3 external services\]
 
@@ -51,7 +51,7 @@ The browser talks only to the web app. The scraper reads the Google Sites page a
 
 ### Main flows
 
-1. **Look up a roll number.** `/r/[reg]` normalizes the number, then `LookupService` reads that student's seats from every dataset in one query (index on `seats.reg`) and returns papers sorted by date and time.
+1. **Look up a roll number.** `/r/[reg]` normalizes the number, then `LookupService` reads that student's datasets and seats from every dataset in two queries sent together (indexes on `students.reg` and `seats.reg`) and returns papers sorted by date and time.
 2. **Open a room.** The room page asks `RoomService` for seats with matching `(dataset_id, slot_key, room)`, joined with student names, plus the room's dimensions and course list. One query, rendered on the server; only seat taps and the legend spotlight run in the browser.
 3. **Add or refresh a department.** The sheet posts the URL to `/api/jobs`. The web app canonicalizes it and checks it against the board, active jobs, limits and cooldown, then inserts a job and kicks the scraper. The scraper claims the job, runs the pipeline and writes the dataset. The browser polls `/api/jobs/[id]` until done or failed (section 6).
 4. **Confirm or report.** The source notice posts to the confirm or report endpoint. The row and its counter change in one transaction; a report also emails the owner.

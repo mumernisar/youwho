@@ -13,9 +13,8 @@ export class LookupService {
 
   async lookup(input: string, voterHash: string | null): Promise<LookupView> {
     const reg = parseReg(input);
-    const result = await this.repos.seats.lookup(reg);
+    const [result, confirmed] = await Promise.all([this.repos.seats.lookup(reg), this.datasets.confirmedFor(voterHash)]);
     if (!result) return fail('STUDENT_NOT_FOUND');
-    const confirmed = await this.datasets.confirmedFor(voterHash);
     return {
       reg: result.reg,
       name: result.name,

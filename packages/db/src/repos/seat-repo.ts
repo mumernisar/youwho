@@ -13,15 +13,17 @@ export class SeatRepo {
   /** Every dataset that knows this student, with papers sorted by date and time. Null when none does. */
   lookup(reg: string): Promise<LookupResult | null> {
     return guard(async () => {
-      const found = await this.db
-        .select({ student: students, dataset: datasets })
-        .from(students)
-        .innerJoin(datasets, eq(datasets.id, students.datasetId))
-        .where(eq(students.reg, reg))
-        .orderBy(asc(datasets.createdAt));
+      // Independent reads, sent together: each round trip to the database costs more than the query.
+      const [found, seatRows] = await Promise.all([
+        this.db
+          .select({ student: students, dataset: datasets })
+          .from(students)
+          .innerJoin(datasets, eq(datasets.id, students.datasetId))
+          .where(eq(students.reg, reg))
+          .orderBy(asc(datasets.createdAt)),
+        this.db.select().from(seats).where(eq(seats.reg, reg)),
+      ]);
       if (found.length === 0) return null;
-
-      const seatRows = await this.db.select().from(seats).where(eq(seats.reg, reg));
       const departments = found.map(({ student, dataset }) => {
         const full = toDatasetFull(dataset);
         const papers: Paper[] = seatRows
