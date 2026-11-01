@@ -10,6 +10,12 @@ apps/scraper    Node 22 + Playwright (Heroku, Docker): add and refresh jobs
 packages/       errors, core, db, notify, config
 ```
 
+## Status: decommissioned
+
+The site is switched off: we found out the seating data it showed was not official. Every page
+shows a notice and the API answers `SITE_DECOMMISSIONED` (410). Nothing else was removed. To bring
+it back, set `DECOMMISSIONED` to `false` in `apps/web/src/site-status.ts` and redeploy.
+
 ## Run it locally
 
 Needs Node 22, pnpm (`corepack enable`) and Docker.

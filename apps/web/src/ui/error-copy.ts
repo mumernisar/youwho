@@ -34,6 +34,7 @@ export const ERROR_COPY: Record<ErrorCode | 'NETWORK_ERROR', ErrorPresentation> 
   SCRAPER_STALLED: { icon: 'alert', heading: 'Scraper stopped', action: 'retry' },
   SCRAPER_UNAVAILABLE: { icon: 'alert', heading: 'Scraper unavailable', action: 'retry' },
   DB_UNAVAILABLE: { icon: 'alert', heading: 'Temporary problem', action: 'retry' },
+  SITE_DECOMMISSIONED: { icon: 'lock', heading: 'Site taken down', action: 'none' },
   INTERNAL: { icon: 'alert', heading: 'Something went wrong', action: 'retry' },
   NETWORK_ERROR: { icon: 'offline', heading: 'No connection', action: 'retry' },
 };

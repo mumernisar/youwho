@@ -41,6 +41,7 @@ export const ERRORS = {
   SCRAPER_STALLED: { status: 503, category: 'unavailable', message: 'The scraper stopped responding. Please try again.', retryable: true, expose: true, log: 'error' },
   SCRAPER_UNAVAILABLE: { status: 503, category: 'unavailable', message: 'The scraper could not be reached. Please try again later.', retryable: true, expose: true, log: 'error' },
   DB_UNAVAILABLE: { status: 503, category: 'unavailable', message: 'youwho is having trouble right now. Please try again.', retryable: true, expose: true, log: 'error' },
+  SITE_DECOMMISSIONED: { status: 410, category: 'unavailable', message: 'youwho has been taken down.', retryable: false, expose: true, log: 'info' },
   INTERNAL: { status: 500, category: 'internal', message: 'Something went wrong on our side.', retryable: true, expose: true, log: 'error' },
 } as const satisfies Record<string, ErrorDef>;
 
