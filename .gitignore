@@ -6,3 +6,6 @@ dist
 .DS_Store
 *.tsbuildinfo
 next-env.d.ts
+
+# Local-only checks (fingerprint edit cases)
+scripts/local/

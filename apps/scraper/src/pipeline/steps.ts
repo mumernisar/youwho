@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { fail } from '@youwho/errors';
-import { DATA_REVISION, parseRawPlan, selectDecoder, slugFromSourceUrl, type DecodedPlan } from '@youwho/core';
+import { DATA_REVISION, logicFingerprint, parseRawPlan, selectDecoder, slugFromSourceUrl, type DecodedPlan } from '@youwho/core';
 import type { DatasetRepo, SaveResult } from '@youwho/db';
 import type { PageRead } from '../sources';
 
@@ -16,8 +16,8 @@ export interface Decoded {
 /** decode: text → DecodedPlan. Shape and type checks only. */
 export function decodeStep(read: PageRead): Decoded {
   const raw = parseRawPlan(read.dataText);
-  // The page's own decoder script, whitespace removed, picks the decoder version.
-  const logicHash = sha256(read.logicText.replace(/\s+/g, ''));
+  // The data-reading parts of the page's own script pick the decoder version; display edits do not.
+  const logicHash = sha256(logicFingerprint(read.logicText));
   const { decoder, known } = selectDecoder(logicHash);
   return { plan: decoder.decode(raw), dataHash: sha256(`${DATA_REVISION}:${read.dataText}`), logicHash, decoderKnown: known };
 }

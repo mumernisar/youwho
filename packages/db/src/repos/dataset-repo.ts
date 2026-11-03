@@ -56,7 +56,11 @@ export class DatasetRepo {
       this.db.transaction(async (tx) => {
         const [existing] = await tx.select().from(datasets).where(eq(datasets.sourceUrl, input.sourceUrl)).limit(1);
         if (existing && existing.dataHash === input.dataHash) {
-          await tx.update(datasets).set({ updatedAt: input.now }).where(eq(datasets.id, existing.id));
+          // The page script can change without the data, so its hash and decoder match stay current.
+          await tx
+            .update(datasets)
+            .set({ logicHash: input.logicHash, decoderKnown: input.decoderKnown, updatedAt: input.now })
+            .where(eq(datasets.id, existing.id));
           return { datasetId: existing.id, slug: existing.slug, created: false, changed: false, seatsBefore: existing.seatsCount };
         }
 

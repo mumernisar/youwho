@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { parseRawPlan, selectDecoder, type DecodedPlan, type SeatPosition } from '@youwho/core';
+import { logicFingerprint, parseRawPlan, selectDecoder, type DecodedPlan, type SeatPosition } from '@youwho/core';
 
 const dir = fileURLToPath(new URL('../packages/core/fixtures/', import.meta.url));
 const problems: string[] = [];
@@ -11,7 +11,7 @@ const expect = (ok: boolean, what: string) => {
 
 const raw = parseRawPlan(readFileSync(dir + 'cs-fa26-mid.json', 'utf8'));
 const logic = readFileSync(dir + 'cs-fa26-mid.logic.js', 'utf8');
-const logicHash = createHash('sha256').update(logic.replace(/\s+/g, '')).digest('hex');
+const logicHash = createHash('sha256').update(logicFingerprint(logic)).digest('hex');
 const { decoder, known } = selectDecoder(logicHash);
 expect(known, `page script hash ${logicHash} is not registered`);
 const plan: DecodedPlan = decoder.decode(raw);

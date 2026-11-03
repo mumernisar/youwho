@@ -81,7 +81,8 @@ function decodeSeatCode(raw: RawPlan, reg: string, home: number, code: string): 
 
 export const decoderV1: PlanDecoder = {
   version: 'v1',
-  logicHashes: ['3fc3416ed7a3fe6fc2e05c9096264fa7cd52df5b5e2c6e1d34defe7b14e7a0c4'],
+  // Fingerprint of the sample page's script (logicFingerprint); its full text is fixtures/cs-fa26-mid.logic.js.
+  logicHashes: ['092b5d17200229298cdaabec728f3957e03bf63b789fe9bfcaebefda121748d1'],
   decode(raw: RawPlan): DecodedPlan {
     const warnings: string[] = [];
     const students: DecodedPlan['students'] = [];

@@ -28,10 +28,16 @@ function inspectFrame(max: number): FrameHit {
   if (!el) return { data: null, tooLarge: false, logic: '' };
   const text = el.textContent ?? '';
   if (text.length > max) return { data: null, tooLarge: true, logic: '' };
-  const logic = [...document.querySelectorAll('script:not([src])')]
-    .filter((s) => s !== el && /getElementById\(\s*['"]data['"]\s*\)/.test(s.textContent ?? ''))
-    .map((s) => s.textContent ?? '')[0];
-  return { data: text, tooLarge: false, logic: logic ?? '' };
+  // Every inline script that reads the data, in page order, so a second one changes the fingerprint.
+  // External scripts in the same frame are listed by address: their code cannot be seen, but adding
+  // or swapping one should still count as a change.
+  const reader = /getElementById\(\s*['"]data['"]\s*\)|querySelector(All)?\(\s*['"][^'"]*#data\b/;
+  const scripts = [...document.querySelectorAll('script')].filter((s) => s !== el);
+  const logic = [
+    ...scripts.filter((s) => !s.src && reader.test(s.textContent ?? '')).map((s) => s.textContent ?? ''),
+    ...scripts.filter((s) => s.src).map((s) => JSON.stringify(`external script ${s.src}`)),
+  ].join('\n;\n');
+  return { data: text, tooLarge: false, logic };
 }
 
 const hostAllowed = (host: string, allowed: readonly string[]) =>

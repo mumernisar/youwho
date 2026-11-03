@@ -9,6 +9,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
+    "acorn": "8.19.0",
     "zod": "4.6.7",
     "@youwho/errors": "workspace:*"
   }
