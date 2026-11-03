@@ -10,12 +10,6 @@ apps/scraper    Node 22 + Playwright (Heroku, Docker): add and refresh jobs
 packages/       errors, core, db, notify, config
 ```
 
-## Status: decommissioned
-
-The site is switched off: we found out the seating data it showed was not official. Every page
-shows a notice and the API answers `SITE_DECOMMISSIONED` (410). Nothing else was removed. To bring
-it back, set `DECOMMISSIONED` to `false` in `apps/web/src/site-status.ts` and redeploy.
-
 ## Run it locally
 
 Needs Node 22, pnpm (`corepack enable`) and Docker.
@@ -40,7 +34,7 @@ Other commands: `pnpm lint`, `pnpm typecheck`, `pnpm check:decoder` (run after a
 | --- | --- | --- |
 | `DATABASE_URL` | web, scraper | Local: `postgresql://youwho:youwho@localhost:5433/youwho`. Production: the Neon URL |
 | `NEON_DATABASE_URL` | scripts | Only for `pnpm db:migrate --neon` and `pnpm seed:fixture --neon` |
-| `SCRAPER_URL`, `SCRAPER_SECRET` | web (both: secret) | Base URL of the scraper and the shared bearer secret (32+ characters) |
+| `SCRAPER_URL`, `SCRAPER_SECRET` | web (both: secret) | Base URL of the scraper and the shared bearer secret (32+ characters). Local: `http://localhost:8080`. The scraper must use the same database as the web app, so a local web app pointed at the Heroku scraper leaves jobs waiting until they fail |
 | `ADMIN_TOKEN` | web | Password for `/admin` |
 | `SESSION_SECRET`, `HASH_SALT` | web | 32+ random characters each. Changing `HASH_SALT` resets everyone's votes |
 | `GITHUB_REPO`, `GITHUB_TOKEN` | web | `owner/name` for the Star button; token is optional |

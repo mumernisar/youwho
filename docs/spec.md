@@ -105,7 +105,7 @@ Arrows point one way: apps depend on packages, never the reverse. `errors` depen
 | Wiring | Composition root: one `createServices(env)` per app returns every dependency. Web memoizes it per server instance; scraper builds it in `main.ts`. | `apps/*/src/server/services.ts`, `apps/scraper/src/main.ts` |
 | External services | Interface + factory picking the implementation from config: `createNotifier(env)` returns Resend or console; `createPageSource(env)` returns Playwright or fixture. | `packages/notify`, `apps/scraper/src/sources` |
 | Data access | Repository per aggregate (`DatasetRepo`, `SeatRepo`, `JobRepo`, `FeedbackRepo`). Repos return domain types, never Drizzle rows. | `packages/db/src/repos` |
-| Decoding | Registry keyed by the hash of the page's own decoder script. Unknown hash falls back to the latest decoder and raises a warning. | `packages/core/src/decoders` |
+| Decoding | Registry keyed by the hash of the data-reading parts of the page's own script. Unknown hash falls back to the latest decoder and raises a warning. | `packages/core/src/decoders` |
 | Errors | Catalog + factory + boundary wrappers (section 5). | `packages/errors`, route and job wrappers |
 | Time and cancellation | `Clock` interface and `AbortSignal` passed into every long step, so every long step honours the job deadline. | `core`, scraper runner |
 
@@ -182,7 +182,15 @@ Special seat labels are parsed leniently. `Extra-N` becomes an extra chair, `CR-
 
 ### Decoder registry
 
-The page also carries its own rendering script. The scraper hashes it (SHA-256 of the text with all whitespace removed) and looks the hash up in `decoders/index.ts`:
+The page also carries its own rendering script: every inline script in the data's frame that reads `#data`, joined in page order, plus the address of any external script there. The scraper hashes a canonical form of it (`logicFingerprint` in `decoders/fingerprint.ts`, SHA-256), looked up in `decoders/index.ts`. The fingerprint is built so display edits keep the hash and anything that could change how the data is read changes it:
+
+- The script is parsed (acorn, bundled into the scraper), so whitespace, comments and line breaks never count, and every piece of code does: any added, removed or changed statement anywhere gives a new hash.
+- Two kinds of display text are ignored: the text of template literals (the page's HTML) and the contents of arrays and objects made only of constants (such as the list of exam days).
+- Nothing is ignored in the data-reading parts (the base-36 reader, the loop over student rows, `decode`, `seatInfo`, and the lines that unpack a row and index slots, courses, sections and rooms), or in anything that can reach them: the values they read, every change to the objects those values hold (through any alias, callback parameter, function argument or return value), the arguments supplying their parameters, and every change to a shared built-in. Calls to code the analysis cannot see count as changes to everything they are given.
+- Template text that could run code (markup with scripts or handlers, attributes, `src`/`href`/`srcdoc`-like properties, `document.write`) is never ignored.
+- Fails safe: a script that does not parse, uses `eval`, `Function`, string timers, `import()`, `with` or `this`, creates script-like elements, or in which any data-reading part is missing or found twice, is hashed whole, so it never matches a registered decoder.
+
+Upgrading acorn can change every fingerprint; `pnpm check:decoder` fails if the fixture's script no longer matches v1.
 
 ```ts
 export interface PlanDecoder {
@@ -193,7 +201,7 @@ export interface PlanDecoder {
 export function selectDecoder(logicHash: string): { decoder: PlanDecoder; known: boolean };
 ```
 
-`v1` is registered with hash `3fc3416ed7a3fe6fc2e05c9096264fa7cd52df5b5e2c6e1d34defe7b14e7a0c4` from the sample page. An unknown hash still uses the latest decoder; the dataset records `decoderKnown: false` and the owner gets an email. A new format means adding `v2` beside `v1`, never editing `v1`.
+`v1` is registered with hash `092b5d17200229298cdaabec728f3957e03bf63b789fe9bfcaebefda121748d1`, the fingerprint of the sample page's script; the script's full text stays in `packages/core/fixtures/cs-fa26-mid.logic.js`. An unknown hash still uses the latest decoder; the dataset records `decoderKnown: false` and the owner gets an email. A new format means adding `v2` beside `v1`, never editing `v1`.
 
 ### Normalized types
 
@@ -231,7 +239,7 @@ interface DecodedPlan {
 
 All child tables use `on delete cascade` from `datasets`, so deleting a dataset removes its students, seats, confirmations and reports in one statement. `jobs.dataset_id` uses `on delete set null`. `confirm_count` and `report_count` are updated in the same transaction as the row change, so the board never needs an aggregate query.
 
-A re-scrape replaces a dataset's students and seats inside one transaction. If `data_hash` is unchanged, only `updated_at` moves.
+A re-scrape replaces a dataset's students and seats inside one transaction. If `data_hash` is unchanged, only `updated_at`, `logic_hash` and `decoder_known` move.
 
 ## 5. Error handling
 
@@ -470,7 +478,7 @@ Nothing from the page is ever executed in Node: only strings cross back.
 - **Heartbeat.** Every stage change updates `heartbeat_at`.
 - **Hard exit.** If cleanup itself has not finished 30 seconds after the deadline, the process exits with code 1 and Render restarts it.
 - **Boot sweep.** On start, any job still `running` belonged to a dead process and is failed with `SCRAPER_RESTARTED`. Then the runner drains the queue.
-- **Web-side sweep.** The job status endpoint fails a `running` job whose heartbeat is older than 4 minutes (`SCRAPER_STALLED`) and a `queued` job older than 15 minutes (`SCRAPER_UNAVAILABLE`). This covers a scraper that died without restarting.
+- **Web-side sweep.** The job status endpoint fails a `running` job whose heartbeat is older than 4 minutes (`SCRAPER_STALLED`) and a `queued` job older than 15 minutes, or older than 2 minutes while the scraper has not reported in for 30 seconds (the "Waking up scraper…" state), with `SCRAPER_UNAVAILABLE`. This covers a scraper that died without restarting or that never answers, such as a local web app whose `SCRAPER_URL` points at a scraper on another database.
 - Failures are written with `where status = 'running'`, so a late write from a timed-out job can never overwrite a sweep.
 
 ### Waking the free instance
@@ -506,7 +514,7 @@ Departments go live as soon as they are scraped. Trust comes from showing where 
 
 ### Source attribution
 
-Every place a department appears shows its source URL as a link (`rel="noopener noreferrer nofollow"`, opens in a new tab): the board card, the department page, the roll results header for that department, and the room view footer. Display the URL without `https://` and truncate the middle on narrow screens.
+Every place a department appears shows its source URL as a link (`rel="noopener noreferrer nofollow"`, opens in a new tab): the department page, the roll results header for that department, and the room view footer. Display the URL without `https://` and truncate the middle on narrow screens.
 
 The department page and the room view also show this notice, above the content:
 
@@ -671,7 +679,7 @@ Colour is never the only signal. Each course also gets a texture (solid, dots, d
 
 ### Screens
 
-**Home.** Wordmark and theme switch at the top left; Star on GitHub button with the live count at the top right. Centre: a large roll-number field with placeholder `FA24-BSE-058` that formats as you type, and a Show button. Below it, **On the board**: one row per department with label, source host, "updated 31 Oct", student count, and a Looks right count. Under the list, a plain link: "Add your department". The last roll number used is remembered in `localStorage` and pre-filled.
+**Home.** Wordmark and theme switch at the top left; Star on GitHub button with the live count at the top right. Centre: a large roll-number field with placeholder `FA24-BSE-058` that formats as you type, and a Show button. Below it, **On the board**: one row per department with label, "Updated 31 Oct" under it (where the source host used to be; the source link is on the department page), student count, and a Looks right count. Under the list, a plain link: "Add your department". The last roll number used is remembered in `localStorage` and pre-filled.
 
 **Add a department (sheet).** One URL field and an Add button. After submit, the sheet becomes a status card: a single line of state ("Waking up scraper…", "In line, 2 ahead of you", "Opening page", "Finding seating data", "Checking data", "Saving 13,916 seats"), an elapsed timer, and a thin progress rule with one tick per stage. On done: "Added" and a button to the department. On failure: the catalog message, the request id in small print, and Try again when the error is retryable. The user can close the sheet; a small toast tracks the job until it finishes.
 
@@ -875,4 +883,3 @@ Recorded while building; the behaviour below is what is implemented.
 - The home page ships about 146 KB of gzipped JavaScript, of which about 118 KB is the Next.js and React baseline, so the 100 KB target in section 9 is not reachable with this stack. The add sheet is loaded on demand. Lighthouse (mobile) scores 100 for performance, accessibility, best practices and SEO.
 - The scraper is deployed on Heroku (container stack, `heroku.yml`, Eco dyno, about $5/month) instead of Render's free tier, so the "hosting must stay free" decision no longer holds for the scraper. The Dockerfile is unchanged; `render.yaml` was removed.
 
-- **Decommission switch.** `DECOMMISSIONED` in `apps/web/src/site-status.ts` (on since 1 Nov 2026, because the seating data was found not to be official). While it is on, `apps/web/proxy.ts` serves the notice (`app/decommissioned`) at `/`, redirects every other page to `/` with a temporary 307, and answers every API route except `/api/github` (the header's star count) with `SITE_DECOMMISSIONED` (410). Set it to `false` and redeploy to restore the site unchanged; the notice route then returns 404.
