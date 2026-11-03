@@ -45,9 +45,16 @@ export default async function Room({
 
   const yourSeat = model.me && mine && (
     <section style={hueStyle(mine.hue)} className="card overflow-hidden" aria-label="Your seat">
-      <div className="bg-accent px-4 py-3 text-accent-ink">
-        <p className="text-xs font-bold tracking-wider uppercase opacity-80">Your seat</p>
-        <p className="mt-0.5 text-2xl font-extrabold tracking-tight">{model.me.label}</p>
+      {/* Seat and room side by side, the two things to find on the day. */}
+      <div className="flex items-stretch gap-4 bg-accent px-4 py-3 text-accent-ink">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold tracking-wider uppercase opacity-80">Your seat</p>
+          <p className="mt-0.5 text-2xl font-extrabold tracking-tight">{model.me.label}</p>
+        </div>
+        <div className="max-w-[45%] flex-none border-l border-accent-ink/20 pl-4 text-right">
+          <p className="text-xs font-bold tracking-wider uppercase opacity-80">Room</p>
+          <p className="mt-0.5 text-2xl font-extrabold tracking-tight break-words">{data.room}</p>
+        </div>
       </div>
       <div className="space-y-2 p-4 text-sm">
         <p className="font-semibold">{model.me.name}</p>

@@ -97,7 +97,8 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const seatPx = fit.seat * ZOOMS[zoom]!;
+  // Zoom is a wide-card control; a narrow card always shows the room fitted to it.
+  const seatPx = fit.seat * (wide ? ZOOMS[zoom]! : 1);
   const mine = model.mySection;
 
   const items = by === 'course' ? model.courses : model.sections;
@@ -180,7 +181,6 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
     setFindOpen(true);
     requestAnimationFrame(() => findInput.current?.focus());
   };
-  const inline = findOpen && wide;
   const findField = (className: string) => (
     <>
       <label htmlFor="find-roll" className="sr-only">Roll number</label>
@@ -194,7 +194,7 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
           setMissed(null);
         }}
         onKeyDown={(e) => e.key === 'Escape' && closeFind()}
-        placeholder="e.g. FA24-BSE-058"
+        placeholder="FA23-BSE-077"
         autoComplete="off"
         autoCapitalize="characters"
         spellCheck={false}
@@ -221,6 +221,50 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
     <span aria-live="polite" className="sr-only">
       {found ? `Found ${found.name}, ${found.label}` : missed ? (many ? `More than one seat ends in ${missed}. Type more of the number.` : `${missed} is not in this room`) : ''}
     </span>
+  );
+  /** In the map, an open search takes the whole row above the front board. */
+  /**
+   * Wide card: Find is the frame of an expanding search. Pressed, the frame grows to the left around
+   * the field, and Find stays inside it at the right end as the submit button.
+   */
+  const findMorph = (
+    <div className="relative min-w-0">
+      <form id="find-seat" role="search" onSubmit={onFind} className="find-morph" data-open={findOpen} data-closing={closing}>
+        {findOpen && (
+          <>
+            {findField('find-morph-input')}
+            <button type="button" onClick={closeFind} aria-label="Close search" className="find-morph-close btn btn-quiet btn-icon h-7 min-h-7 w-7 flex-none rounded-lg">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </>
+        )}
+        <button
+          type={findOpen ? 'submit' : 'button'}
+          onClick={findOpen ? undefined : openFind}
+          aria-expanded={findOpen}
+          aria-controls="find-seat"
+          className="find-morph-go"
+          data-result={result}
+        >
+          {findLabel}
+        </button>
+      </form>
+      {findOpen && findStatus}
+    </div>
+  );
+  /** Narrow card: Find sits at the right end of the view switch and opens the search row under it; pressed again, or Escape, closes it. */
+  const findToggle = (
+    <button type="button" aria-expanded={findOpen} aria-controls="find-seat" onClick={() => (findOpen ? closeFind() : openFind())} className="find-toggle btn btn-secondary btn-sm flex-none">
+      <Search className="h-4 w-4" />
+      Find
+    </button>
+  );
+  const zoomControl = grid.length > 0 && (
+    <div className="flex flex-none items-center rounded-xl ring-1 ring-line">
+      <button type="button" aria-label="Zoom out" disabled={zoom === 0} onClick={() => setZoom((z) => z - 1)} className="btn btn-quiet btn-sm btn-icon h-9 min-h-9 w-9 rounded-r-none"><Minus className="h-4 w-4" /></button>
+      <span className="w-11 text-center font-mono text-xs text-muted">{Math.round(ZOOMS[zoom]! * 100)}%</span>
+      <button type="button" aria-label="Zoom in" disabled={zoom === ZOOMS.length - 1} onClick={() => setZoom((z) => z + 1)} className="btn btn-quiet btn-sm btn-icon h-9 min-h-9 w-9 rounded-l-none"><Plus className="h-4 w-4" /></button>
+    </div>
   );
   const changeLayout = (v: Layout) => {
     setLayout(v);
@@ -311,11 +355,12 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
       {aside && <div className="lg:hidden">{aside}</div>}
       {/* Laid out by the card's own width, not the screen's: beside the legend on a tablet it is narrow. */}
       <section ref={card} className="card @container min-w-0 p-2 sm:p-4" aria-label="Seating plan">
-        {/* Narrow card: switch, note, then controls; the search opens under them.
+        {/* Narrow card: switch with Find at its right end, then the note; the search row opens under them.
+            There is no zoom control: the room is fitted to the card and pinch-zoom still works.
             Wide card: switch and controls share the top row and the note gets its own row, so the search
             can open inline beside Find using the row's free space without squeezing the switch. */}
         <div className="grid grid-cols-1 gap-2 px-1 pb-3 @2xl:grid-cols-[auto_minmax(0,1fr)] @2xl:items-center">
-          <div className="min-w-0 whitespace-nowrap">
+          <div className="flex min-w-0 items-center justify-between gap-2 whitespace-nowrap">
             {official.grid.length > 0 ? (
               <>
                 <h2 className="sr-only">Seating plan</h2>
@@ -344,72 +389,32 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
             ) : (
               <h2 className="text-base font-bold">Seating plan</h2>
             )}
+            {!wide && findToggle}
           </div>
           {grid.length > 0 && (
             <p className="-mt-0.5 text-xs text-muted @2xl:col-span-2 @2xl:row-start-2">
               {MIRRORED ? 'Left and right as the invigilator at the front sees it. Seat 1 is on your right.' : 'Seat 1 is on your left as you face the front.'}
             </p>
           )}
-          <div className="flex min-w-0 items-center gap-2 @2xl:col-start-2 @2xl:row-start-1 @2xl:justify-end">
-            {wide ? (
-              // Wide card: Find is the frame of an expanding search. Pressed, the frame grows to the left
-              // around the field, and Find stays inside it at the right end as the submit button.
-              <div className="relative min-w-0">
-              <form id="find-seat" role="search" onSubmit={onFind} className="find-morph" data-open={findOpen} data-closing={closing}>
-                {findOpen && (
-                  <>
-                    {findField('find-morph-input')}
-                    <button type="button" onClick={closeFind} aria-label="Close search" className="find-morph-close btn btn-quiet btn-icon h-7 min-h-7 w-7 flex-none rounded-lg">
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </>
-                )}
-                <button
-                  type={findOpen ? 'submit' : 'button'}
-                  onClick={findOpen ? undefined : openFind}
-                  aria-expanded={findOpen}
-                  aria-controls="find-seat"
-                  className="find-morph-go"
-                  data-result={result}
-                >
-                  {findLabel}
-                </button>
-              </form>
-              {findOpen && findStatus}
-              </div>
-            ) : (
-              <button
-                type="button"
-                aria-expanded={findOpen}
-                aria-controls="find-seat"
-                onClick={() => (findOpen ? closeFind() : openFind())}
-                className="btn btn-secondary btn-sm"
-              >
-                <Search className="h-4 w-4" />
-                Find
-              </button>
-            )}
-            {grid.length > 0 && (
-              <div className="flex items-center rounded-xl ring-1 ring-line">
-                <button type="button" aria-label="Zoom out" disabled={zoom === 0} onClick={() => setZoom((z) => z - 1)} className="btn btn-quiet btn-sm btn-icon h-9 min-h-9 w-9 rounded-r-none"><Minus className="h-4 w-4" /></button>
-                <span className="w-11 text-center font-mono text-xs text-muted">{Math.round(ZOOMS[zoom]! * 100)}%</span>
-                <button type="button" aria-label="Zoom in" disabled={zoom === ZOOMS.length - 1} onClick={() => setZoom((z) => z + 1)} className="btn btn-quiet btn-sm btn-icon h-9 min-h-9 w-9 rounded-l-none"><Plus className="h-4 w-4" /></button>
-              </div>
-            )}
-          </div>
+          {wide && (
+            <div className="flex min-w-0 items-center gap-2 @2xl:col-start-2 @2xl:row-start-1 @2xl:justify-end">
+              {findMorph}
+              {zoomControl}
+            </div>
+          )}
         </div>
 
-        {findOpen && !inline && (
-          <form id="find-seat" role="search" onSubmit={onFind} className="find-row relative max-w-md px-1 pt-1 pb-4" data-closing={closing}>
-            <div className="flex gap-2">
-              {findField('field min-h-10 min-w-0 flex-1 font-mono text-sm')}
-              <button type="submit" className="find-go btn btn-primary btn-sm min-h-10 flex-none" data-result={result}>{findLabel}</button>
-              <button type="button" onClick={closeFind} aria-label="Close search" className="btn btn-quiet btn-sm btn-icon h-10 min-h-10 w-10">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            {findStatus}
-          </form>
+        {/* The row unfolds from zero height, so the map slides down instead of jumping, and folds away on close. */}
+        {findOpen && !wide && (
+          <div className="find-row" data-closing={closing}>
+            <form id="find-seat" role="search" onSubmit={onFind} className="find-row-body relative max-w-md px-1 pt-1 pb-4">
+              <div className="flex gap-2">
+                {findField('field min-h-10 min-w-0 flex-1 font-mono text-sm')}
+                <button type="submit" className="find-go btn btn-primary btn-sm min-h-10 flex-none" data-result={result}>{findLabel}</button>
+              </div>
+              {findStatus}
+            </form>
+          </div>
         )}
 
         {grid.length > 0 ? (

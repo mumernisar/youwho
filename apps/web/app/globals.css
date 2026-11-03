@@ -429,6 +429,7 @@ body {
   font-size: 0.875rem;
   animation: find-grow 180ms ease-out;
 }
+/* In the map Find stands on the floor, so it gets a shadow; open, it spans the row above the board. */
 .find-morph-input::placeholder {
   color: color-mix(in oklab, var(--muted) 70%, transparent);
 }
@@ -489,12 +490,37 @@ body {
     opacity: 0;
   }
 }
-/* Narrow cards: the search row drops in under the controls and lifts away on close. */
+/* Narrow cards: the search row unfolds under the controls, pushing the map down smoothly, and its
+   content drops in; closing runs both backwards. The component removes the row when it ends (FIND_ANIM_MS). */
 .find-row {
-  animation: find-drop 160ms ease-out;
+  display: grid;
+  grid-template-rows: 1fr;
+  animation: find-unfold 200ms ease-out;
+}
+.find-row-body {
+  min-height: 0;
+  overflow: hidden;
+  animation: find-drop 200ms ease-out;
 }
 .find-row[data-closing='true'] {
+  animation: find-fold 160ms ease-in forwards;
+}
+.find-row[data-closing='true'] .find-row-body {
   animation: find-lift 160ms ease-in forwards;
+}
+@keyframes find-unfold {
+  from {
+    grid-template-rows: 0fr;
+  }
+}
+@keyframes find-fold {
+  to {
+    grid-template-rows: 0fr;
+  }
+}
+.find-toggle[aria-expanded='true'] {
+  border-color: var(--brand);
+  color: var(--brand);
 }
 @keyframes find-drop {
   from {
@@ -554,6 +580,8 @@ body {
   .find-morph[data-closing='true'] .find-morph-input,
   .find-row,
   .find-row[data-closing='true'],
+  .find-row-body,
+  .find-row[data-closing='true'] .find-row-body,
   .find-morph-go,
   .find-go {
     animation: none;
