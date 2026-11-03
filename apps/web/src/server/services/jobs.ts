@@ -12,6 +12,8 @@ export const LIMITS = {
   refreshCooldownMs: 10 * 60_000,
   runningStallMs: 4 * 60_000,
   queuedStaleMs: 15 * 60_000,
+  /** A queued job whose scraper has not answered at all (still "waking") fails sooner than one waiting in line. */
+  wakeTimeoutMs: 2 * 60_000,
   kickEveryMs: 15_000,
   scraperSeenMs: 30_000,
 } as const;
@@ -66,10 +68,11 @@ export class JobService {
     if (!job) return fail('JOB_NOT_FOUND');
     const now = this.deps.now();
 
+    const age = now.getTime() - job.createdAt.getTime();
     if (job.status === 'running' && job.heartbeatAt && now.getTime() - job.heartbeatAt.getTime() > LIMITS.runningStallMs) {
       await repos.jobs.fail(id, { code: 'SCRAPER_STALLED', message: ERRORS.SCRAPER_STALLED.message }, now, 'running');
       job = (await repos.jobs.get(id)) ?? job;
-    } else if (job.status === 'queued' && now.getTime() - job.createdAt.getTime() > LIMITS.queuedStaleMs) {
+    } else if (job.status === 'queued' && (age > LIMITS.queuedStaleMs || (age > LIMITS.wakeTimeoutMs && (await this.waking(now))))) {
       await repos.jobs.fail(id, { code: 'SCRAPER_UNAVAILABLE', message: ERRORS.SCRAPER_UNAVAILABLE.message }, now, 'queued');
       job = (await repos.jobs.get(id)) ?? job;
     } else if (job.status === 'queued') {
@@ -83,11 +86,16 @@ export class JobService {
     return this.view(job);
   }
 
+  /** The scraper has not reported in recently: asleep, starting, or not reachable from here. */
+  private async waking(now: Date): Promise<boolean> {
+    const seen = await this.deps.repos.scraperStatus.lastSeen();
+    return !seen || now.getTime() - seen.getTime() > LIMITS.scraperSeenMs;
+  }
+
   private async view(job: Job): Promise<JobView> {
     const { repos } = this.deps;
     const now = this.deps.now();
     const queued = job.status === 'queued';
-    const seen = queued ? await repos.scraperStatus.lastSeen() : null;
     const slug = job.status === 'done' && job.datasetId ? await repos.datasets.slugById(job.datasetId) : null;
     return {
       id: job.id,
@@ -95,7 +103,7 @@ export class JobService {
       status: job.status,
       stage: job.stage,
       position: queued ? await repos.jobs.position(job) : null,
-      waking: queued && (!seen || now.getTime() - seen.getTime() > LIMITS.scraperSeenMs),
+      waking: queued && (await this.waking(now)),
       datasetSlug: slug,
       error: job.status === 'failed' ? publicJobError(job) : null,
       createdAt: job.createdAt.toISOString(),
