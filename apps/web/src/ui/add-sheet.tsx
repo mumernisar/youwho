@@ -6,6 +6,7 @@ import type { DatasetSummary, JobView } from '@/server/schemas';
 import type { ClientError } from '@/client/api-fetch';
 import { ErrorState } from './error-state';
 import { JobStatus } from './job-status';
+import { Refresh } from './icons';
 
 export interface AddSheetProps {
   open: boolean;
@@ -31,8 +32,12 @@ export default function AddSheet({ open, onOpenChange, url, setUrl, lastKind, jo
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-40 bg-black/45 backdrop-blur-[2px]" />
           <Dialog.Content className="fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-surface p-6 pb-8 text-ink shadow-2xl sm:inset-auto sm:top-1/2 sm:left-1/2 sm:w-[28rem] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl">
-            <Dialog.Title className="text-lg font-semibold">{lastKind === 'refresh' && jobId ? 'Update department' : 'Add a department'}</Dialog.Title>
-            <Dialog.Description className="mt-1 text-sm text-muted">Paste the link of the department&apos;s public Google Sites seating page.</Dialog.Description>
+            <Dialog.Title className="text-lg font-semibold">{lastKind === 'refresh' ? 'Update department' : 'Add a department'}</Dialog.Title>
+            <Dialog.Description className="mt-1 text-sm text-muted">
+              {lastKind === 'refresh'
+                ? 'Reads the department’s page again and replaces its seating if it changed.'
+                : <>Paste the link of the department&apos;s public Google Sites seating page.</>}
+            </Dialog.Description>
 
             {showForm && (
               <form className="mt-4" onSubmit={(e) => { e.preventDefault(); void submit(url, 'add'); }}>
@@ -43,11 +48,19 @@ export default function AddSheet({ open, onOpenChange, url, setUrl, lastKind, jo
               </form>
             )}
             {busy && <p className="mt-4 text-muted">Sending…</p>}
-            {error && <ErrorState compact error={{ code: error.code, message: error.message, retryable: error.retryable, ...(error.requestId ? { requestId: error.requestId } : {}) }} onRetry={reset} />}
+            {/* An update never falls back to the link form: retrying sends the same update again. */}
+            {error && <ErrorState compact error={{ code: error.code, message: error.message, retryable: error.retryable, ...(error.requestId ? { requestId: error.requestId } : {}) }} onRetry={lastKind === 'refresh' ? () => void submit(url, 'refresh') : reset} />}
             {existing && (
               <div className="mt-4">
                 <p className="font-medium">That department is already on the board.</p>
-                <Link href={`/d/${existing.slug}`} onClick={() => { onOpenChange(false); reset(); }} className="btn btn-primary mt-3">Open {existing.label}</Link>
+                <p className="mt-1 text-sm text-muted">Update it to read its page again.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => { setUrl(existing.sourceUrl); void submit(existing.sourceUrl, 'refresh'); }} className="btn btn-primary">
+                    <Refresh className="h-4 w-4" />
+                    Update it
+                  </button>
+                  <Link href={`/d/${existing.slug}`} onClick={() => { onOpenChange(false); reset(); }} className="btn btn-secondary">Open {existing.label}</Link>
+                </div>
               </div>
             )}
             {jobId && !job && !pollError && <p className="mt-4 text-muted">Checking status…</p>}

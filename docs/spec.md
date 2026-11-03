@@ -436,7 +436,7 @@ A job waits in `queued` until the runner claims it, moves through four visible s
 - **add**: a URL not yet on the board. On success it creates the dataset.
 - **refresh**: a URL already on the board. Same pipeline and the same validation; on success it replaces that dataset's data. Allowed once per dataset every 10 minutes (`REFRESH_COOLDOWN`).
 - Submitting a URL that has an active (queued or running) job returns that job instead of creating a second one. A partial unique index on `jobs(source_url) where status in ('queued','running')` guarantees this even under concurrent submits.
-- Submitting an `add` for a URL already on the board returns the dataset, not a job.
+- Submitting an `add` for a URL already on the board returns the dataset, not a job. The sheet then says it is already on the board and offers **Update it** (a `refresh` of that URL) beside **Open**. An update, from there or from Refresh from source, never shows the link field: its title is "Update department", and a failed update offers Try again, which sends the same update.
 
 ### Pipeline
 

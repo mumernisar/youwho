@@ -78,8 +78,14 @@ export function AddDepartmentProvider({ children }: { children: React.ReactNode 
   }), [submit]);
 
   const active = job && (job.status === 'queued' || job.status === 'running');
-  const showForm = !jobId && !existing && !busy;
-  const reset = () => { setJobId(null); store.set(null); setExisting(null); setError(null); setUrl(''); };
+  // The link form is only for adding; an update already knows its department.
+  const showForm = !jobId && !existing && !busy && lastKind === 'add';
+  const reset = () => { setJobId(null); store.set(null); setExisting(null); setError(null); setUrl(''); setLastKind('add'); };
+  // Closing the sheet with nothing being tracked starts the next open fresh, as an add.
+  const onOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next && !jobId) reset();
+  };
 
   return (
     <Ctx.Provider value={tracker}>
@@ -88,7 +94,7 @@ export function AddDepartmentProvider({ children }: { children: React.ReactNode 
       {everOpened && (
         <AddSheet
           open={open}
-          onOpenChange={setOpen}
+          onOpenChange={onOpenChange}
           url={url}
           setUrl={setUrl}
           lastKind={lastKind}
