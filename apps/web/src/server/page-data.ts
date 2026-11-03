@@ -1,7 +1,7 @@
 import 'server-only';
 import { notFound } from 'next/navigation';
 import { toAppError, type PublicError } from '@youwho/errors';
-import { logAppError } from './route';
+import { logAppError } from './log-error';
 import { getServices } from './services';
 
 export type Loaded<T> = { ok: true; data: T } | { ok: false; error: PublicError };

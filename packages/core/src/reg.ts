@@ -12,3 +12,8 @@ export function normalizeReg(input: string): string | null {
 export function parseReg(input: string): string {
   return normalizeReg(input) ?? fail('INVALID_REG_NUMBER');
 }
+
+/** Intake and programme of a normalized reg number: FA23-BSE from FA23-BSE-127. */
+export function cohortOf(reg: string): string {
+  return reg.slice(0, reg.lastIndexOf('-'));
+}

@@ -93,3 +93,14 @@ export interface JobView {
   createdAt: string;
   elapsedSec: number;
 }
+
+export interface SearchTotals {
+  today: number;
+  week: number;
+  total: number;
+}
+
+export interface SearchStats extends SearchTotals {
+  invalid: number;
+  cohorts: { intake: string; programme: string; found: number; notFound: number; total: number }[];
+}

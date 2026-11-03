@@ -1,6 +1,7 @@
 import {
   bigserial,
   boolean,
+  date,
   index,
   integer,
   jsonb,
@@ -131,3 +132,15 @@ export const scraperStatus = pgTable('scraper_status', {
   id: smallint('id').primaryKey().default(1),
   lastSeenAt: ts('last_seen_at').notNull(),
 });
+
+/** Home-page searches per Pakistan day, intake and programme. No reg numbers, voters or IPs. */
+export const lookupCounts = pgTable(
+  'lookup_counts',
+  {
+    day: date('day').notNull(),
+    cohort: text('cohort').notNull(),
+    outcome: text('outcome').$type<'found' | 'not_found' | 'invalid'>().notNull(),
+    count: integer('count').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.day, t.cohort, t.outcome] })],
+);

@@ -1,8 +1,9 @@
 import 'server-only';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { z } from 'zod';
-import { AppError, fail, toAppError } from '@youwho/errors';
+import { fail, toAppError } from '@youwho/errors';
 import { isAdminRequest } from './admin-session';
+import { logAppError } from './log-error';
 import { getServices, type Services } from './services';
 import { setVoterCookie, voterFromRequest, type VoterId } from './voter';
 
@@ -90,11 +91,4 @@ export function route<I = undefined, O = unknown>(opts: {
       return NextResponse.json({ ok: false, error: err.toPublic(requestId) }, { status: err.def.status, headers });
     }
   };
-}
-
-export function logAppError(s: Services | undefined, err: AppError, fields: Record<string, unknown>): void {
-  const line = { ...fields, code: err.code, ...(err.def.log === 'error' ? { err: err.cause ?? err } : {}) };
-  const log = s?.log;
-  if (!log) return console.error(JSON.stringify({ level: 'error', msg: err.message, ...fields, code: err.code }));
-  log[err.def.log](line, err.message);
 }

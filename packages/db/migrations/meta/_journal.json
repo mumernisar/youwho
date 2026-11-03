@@ -8,6 +8,13 @@
       "when": 1793451891263,
       "tag": "0000_skinny_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793719280910,
+      "tag": "0001_little_shinko_yamashiro",
+      "breakpoints": true
     }
   ]
 }

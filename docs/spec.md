@@ -236,6 +236,7 @@ interface DecodedPlan {
 | `jobs` | `id` uuid, `source_url`, `kind` add/refresh, `dataset_id`, `status`, `stage`, `error_code`, `error_message`, `requester_hash`, `created_at`, `started_at`, `heartbeat_at`, `finished_at` | Partial unique index on `source_url` where status is queued or running |
 | `confirmations` | `(dataset_id, voter_hash)` PK, `created_at` | One per voter per dataset; toggling deletes the row |
 | `reports` | `id`, `dataset_id`, `reason`, `note`, `voter_hash`, `created_at` | Reason enum: wrong\_source, outdated, wrong\_data, other |
+| `lookup_counts` | `(day, cohort, outcome)` PK, `count` | Home-page searches per Pakistan day; `cohort` is intake and programme (`FA23-BSE`), empty for input that is not a reg number; outcome found, not\_found, invalid |
 
 All child tables use `on delete cascade` from `datasets`, so deleting a dataset removes its students, seats, confirmations and reports in one statement. `jobs.dataset_id` uses `on delete set null`. `confirm_count` and `report_count` are updated in the same transaction as the row change, so the board never needs an aggregate query.
 
@@ -539,7 +540,7 @@ The notice has two actions beside it: **Looks right · 12** and **Report**. On t
 
 ### Admin
 
-`/admin` is a separate page only the owner uses: sign in with the secret token, select departments, and delete them after one confirmation. Nothing else lives there.
+`/admin` is a separate page only the owner uses: sign in with the secret token, select departments, and delete them after one confirmation. Below the departments it shows search counts.
 
 **Sign in.** The page shows one password field. The server compares the value with `ADMIN_TOKEN` in constant time and, on a match, sets a signed, httpOnly, Secure, SameSite=Strict session cookie valid for 7 days. The token exists only in the server environment: it is read through `packages/config` in server-only code, never prefixed `NEXT_PUBLIC_`, never sent to the browser, never logged and never put in a URL. Five failed attempts from one IP within 15 minutes lock the form for the rest of that window (`RATE_LIMITED`). The page carries `noindex`.
 
@@ -556,6 +557,8 @@ The notice has two actions beside it: **Looks right · 12** and **Report**. On t
 | Added | Date |
 
 **Delete.** Tick one or more rows and press Delete selected. A confirm dialog lists the chosen departments with their source URLs and says that their students, seats, votes and reports will be removed. Delete in the dialog removes them all in one transaction, and fails any queued job for those URLs; Cancel changes nothing. It is a hard delete, and a deleted URL can be added again by anyone.
+
+**Searches.** Totals for today, the last 7 days and all time, then a table of intake and programme with found, not found and total, largest first, and a line for searches that were not a registration number. Only `GET /api/lookup` (the home-page form) is counted; opening `/r/<reg>` directly is not, and rate-limited requests never reach the count. The count is one upsert into `lookup_counts`, run with Next's `after()` once the response has been sent, so it adds no wait for the student; if it fails, the failure is logged and the search still succeeds. No reg number, voter id or IP is stored.
 
 **Sign out** clears the cookie.
 
@@ -883,3 +886,4 @@ Recorded while building; the behaviour below is what is implemented.
 - The home page ships about 146 KB of gzipped JavaScript, of which about 118 KB is the Next.js and React baseline, so the 100 KB target in section 9 is not reachable with this stack. The add sheet is loaded on demand. Lighthouse (mobile) scores 100 for performance, accessibility, best practices and SEO.
 - The scraper is deployed on Heroku (container stack, `heroku.yml`, Eco dyno, about $5/month) instead of Render's free tier, so the "hosting must stay free" decision no longer holds for the scraper. The Dockerfile is unchanged; `render.yaml` was removed.
 
+- Vercel Web Analytics (`@vercel/analytics`, `apps/web/src/ui/analytics.tsx`) counts page views. It sets no cookies and loads a small script after the page. Before each event is sent, `/r/<reg>` is rewritten to `/r/[reg]` and query strings (`?me=`) are dropped, so registration numbers never reach Vercel. The proxy skips `/_vercel/` so the script still loads while the site is decommissioned.

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { IBM_Plex_Mono, Inter } from 'next/font/google';
 import { getServices } from '@/server/services';
 import { AddDepartmentProvider } from '@/ui/add-department';
+import { Analytics } from '@/ui/analytics';
 import { Header } from '@/ui/header';
 import { OfflineBar } from '@/ui/offline-bar';
 import { normalizeTheme } from '@/ui/themes';
@@ -34,6 +35,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Header theme={theme} repoUrl={getServices().github.url} />
           <main className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6">{children}</main>
         </AddDepartmentProvider>
+        <Analytics />
       </body>
     </html>
   );

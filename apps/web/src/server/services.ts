@@ -12,6 +12,7 @@ import { FeedbackService } from './services/feedback';
 import { JobService } from './services/jobs';
 import { RoomService } from './services/rooms';
 import { createScraperClient, type ScraperClient } from './scraper-client';
+import { createDefer } from './background';
 
 export interface Services {
   env: WebEnv;
@@ -53,7 +54,7 @@ export function createServices(env: WebEnv): Services {
     github: new GithubService({ repo: env.GITHUB_REPO, token: env.GITHUB_TOKEN, log, now }),
     admin: new AdminService({ repos, adminToken: env.ADMIN_TOKEN, sessionSecret: env.SESSION_SECRET, hash, now }),
     jobs: new JobService({ repos, datasets, scraper, now }),
-    lookup: new LookupService(repos, datasets),
+    lookup: new LookupService({ repos, datasets, defer: createDefer(log), now }),
     rooms: new RoomService(repos, datasets),
   };
 }

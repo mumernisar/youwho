@@ -17,7 +17,7 @@ export function proxy(req: NextRequest) {
   return NextResponse.redirect(new URL('/', req.url), 307);
 }
 
-// Everything except build assets and the tab icon (the notice's image is served from /_next).
+// Everything except build assets, Vercel's analytics script and the tab icon (the notice's image is served from /_next).
 export const config = {
-  matcher: ['/((?!_next/|icon.svg|favicon.ico).*)'],
+  matcher: ['/((?!_next/|_vercel/|icon.svg|favicon.ico).*)'],
 };

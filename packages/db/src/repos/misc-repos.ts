@@ -1,7 +1,7 @@
 import { eq, sql } from 'drizzle-orm';
 import type { Db } from '../client-types';
 import { guard } from '../translate';
-import { rateLimits, scraperStatus } from '../schema';
+import { lookupCounts, rateLimits, scraperStatus } from '../schema';
 
 export interface RateResult {
   allowed: boolean;
@@ -61,6 +61,47 @@ export class ScraperStatusRepo {
     return guard(async () => {
       const [row] = await this.db.select().from(scraperStatus).where(eq(scraperStatus.id, 1)).limit(1);
       return row?.lastSeenAt ?? null;
+    });
+  }
+}
+
+export type LookupOutcome = 'found' | 'not_found' | 'invalid';
+
+export interface LookupCountRow {
+  cohort: string;
+  outcome: LookupOutcome;
+  today: number;
+  week: number;
+  total: number;
+}
+
+/** Home-page search counters; `day` is a Pakistan date (YYYY-MM-DD). */
+export class LookupCountRepo {
+  constructor(private readonly db: Db) {}
+
+  add(opts: { day: string; cohort: string; outcome: LookupOutcome }): Promise<void> {
+    return guard(async () => {
+      await this.db
+        .insert(lookupCounts)
+        .values({ ...opts, count: 1 })
+        .onConflictDoUpdate({ target: [lookupCounts.day, lookupCounts.cohort, lookupCounts.outcome], set: { count: sql`${lookupCounts.count} + 1` } });
+    });
+  }
+
+  /** Totals per cohort and outcome: today, the last 7 days including today, and all time. */
+  summary(today: string): Promise<LookupCountRow[]> {
+    return guard(async () => {
+      const rows = await this.db
+        .select({
+          cohort: lookupCounts.cohort,
+          outcome: lookupCounts.outcome,
+          today: sql<string>`sum(${lookupCounts.count}) filter (where ${lookupCounts.day} = ${today}::date)`,
+          week: sql<string>`sum(${lookupCounts.count}) filter (where ${lookupCounts.day} > ${today}::date - 7)`,
+          total: sql<string>`sum(${lookupCounts.count})`,
+        })
+        .from(lookupCounts)
+        .groupBy(lookupCounts.cohort, lookupCounts.outcome);
+      return rows.map((r) => ({ cohort: r.cohort, outcome: r.outcome, today: Number(r.today ?? 0), week: Number(r.week ?? 0), total: Number(r.total) }));
     });
   }
 }
