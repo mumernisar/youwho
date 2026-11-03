@@ -7,7 +7,7 @@ import { SeatPopover } from './seat-popover';
 import { rollOrderModel } from './roll-order';
 import { formatRegInput } from './format';
 import { hueStyle } from './palette';
-import { CornerBottomRight, CornerTopRight, Minus, Plus, Search, X } from './icons';
+import { Alert, Check, CornerBottomRight, CornerTopRight, Minus, Plus, Search, X } from './icons';
 
 /** Zoom levels as multiples of the size that fits the card. */
 const ZOOMS = [0.75, 1, 1.25, 1.5, 1.85];
@@ -23,13 +23,14 @@ const gapFor = (seat: number) => Math.max(4, seat * 0.22);
 const normReg = (s: string) => s.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 /** A seat by roll number: the exact number, or the end of one if only one seat in the room matches. */
-function findSeat(seats: SeatModel[], query: string): SeatModel | null {
+/** The seat for a roll number, or for its end when only one seat ends that way. `many`: more than one does. */
+function findSeat(seats: SeatModel[], query: string): { seat: SeatModel | null; many: boolean } {
   const q = normReg(query);
-  if (!q) return null;
+  if (!q) return { seat: null, many: false };
   const exact = seats.find((s) => normReg(s.reg) === q);
-  if (exact) return exact;
+  if (exact) return { seat: exact, many: false };
   const tail = seats.filter((s) => normReg(s.reg).endsWith(q));
-  return tail.length === 1 ? tail[0]! : null;
+  return tail.length === 1 ? { seat: tail[0]!, many: false } : { seat: null, many: tail.length > 1 };
 }
 
 interface Fit {
@@ -37,6 +38,19 @@ interface Fit {
   axis: number;
   bothAxes: boolean;
 }
+
+/** A whole roll number once punctuation is gone, e.g. FA23BSE127: searched without pressing Enter. */
+const FULL_REG = /^[A-Z]{2}\d{2}[A-Z]{3}\d{3}$/;
+/** Pause after the last keystroke before a whole roll number is searched. */
+const AUTO_FIND_MS = 250;
+/** Length of the search's open and close animation (find-grow / find-shrink in globals.css). */
+const FIND_ANIM_MS = 160;
+
+/** Card content width (px) at which the header's controls move right: Tailwind's @2xl, 42rem. */
+const WIDE_CARD = 672;
+
+type FindResult = 'idle' | 'found' | 'missed' | 'many';
+const FIND_LABEL: Record<FindResult, string> = { idle: 'Find', found: 'Found', missed: 'Not found', many: 'Type more' };
 
 /** Largest seat that fits `width`, so the whole room shows without scrolling when it can. */
 function fitRoom(width: number, cols: number): Fit {
@@ -69,7 +83,20 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
   const [query, setQuery] = useState('');
   const [found, setFound] = useState<SeatModel | null>(null);
   const [missed, setMissed] = useState<string | null>(null);
+  const [many, setMany] = useState(false);
+  /** Bumped by every search, so Enter or Find on the same number scrolls to the seat again. */
+  const [findTick, setFindTick] = useState(0);
   const findInput = useRef<HTMLInputElement>(null);
+  const card = useRef<HTMLElement>(null);
+  // Matches the header's @2xl container query: a wide card puts the controls on the right, and the search opens inline.
+  const [wide, setWide] = useState(false);
+  useEffect(() => {
+    const el = card.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([entry]) => setWide((entry?.contentRect.width ?? 0) >= WIDE_CARD));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const seatPx = fit.seat * ZOOMS[zoom]!;
   const mine = model.mySection;
 
@@ -99,19 +126,43 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
   const allSeats = useMemo(() => [...grid, ...extras, ...clash, ...others], [grid, extras, clash, others]);
   useEffect(() => {
     if (found) reveal('[data-found="true"]', true);
-  }, [found, reveal]);
+  }, [found, findTick, reveal]);
+  const runFind = useCallback(
+    (q: string) => {
+      if (!normReg(q)) return;
+      const hit = findSeat(allSeats, q);
+      setFound(hit.seat);
+      setFindTick((t) => t + 1);
+      setMany(hit.many);
+      setMissed(hit.seat ? null : q.trim().toUpperCase());
+    },
+    [allSeats],
+  );
   const onFind = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!normReg(query)) return;
-    const hit = findSeat(allSeats, query);
-    setFound(hit);
-    setMissed(hit ? null : query.trim().toUpperCase());
+    runFind(query);
   };
+  // A whole roll number is searched once typing pauses; a partial one (the end of a number) waits for Enter.
+  useEffect(() => {
+    if (!FULL_REG.test(normReg(query))) return;
+    const t = setTimeout(() => runFind(query), AUTO_FIND_MS);
+    return () => clearTimeout(t);
+  }, [query, runFind]);
+  // Closing plays the opening animation backwards, then removes the search.
+  const [closing, setClosing] = useState(false);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => void (closeTimer.current && clearTimeout(closeTimer.current)), []);
   const closeFind = () => {
-    setFindOpen(false);
-    setQuery('');
-    setFound(null);
-    setMissed(null);
+    const finish = () => {
+      setFindOpen(false);
+      setClosing(false);
+      setQuery('');
+      setFound(null);
+      setMissed(null);
+    };
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return finish();
+    setClosing(true);
+    closeTimer.current = setTimeout(finish, FIND_ANIM_MS);
   };
   useEffect(() => {
     const el = scroller.current;
@@ -123,6 +174,54 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
     return () => ro.disconnect();
   }, [dims.cols]);
   useEffect(() => findMe(), [findMe, fit, layout]);
+  const openFind = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setClosing(false);
+    setFindOpen(true);
+    requestAnimationFrame(() => findInput.current?.focus());
+  };
+  const inline = findOpen && wide;
+  const findField = (className: string) => (
+    <>
+      <label htmlFor="find-roll" className="sr-only">Roll number</label>
+      <input
+        ref={findInput}
+        id="find-roll"
+        value={query}
+        onChange={(e) => {
+          setQuery(formatRegInput(e.target.value));
+          setFound(null);
+          setMissed(null);
+        }}
+        onKeyDown={(e) => e.key === 'Escape' && closeFind()}
+        placeholder="e.g. FA24-BSE-058"
+        autoComplete="off"
+        autoCapitalize="characters"
+        spellCheck={false}
+        enterKeyHint="search"
+        className={className}
+      />
+    </>
+  );
+  /** The search's Find button carries the result: Found (green), Not found or Type more (red). */
+  const result: FindResult = found ? 'found' : missed ? (many ? 'many' : 'missed') : 'idle';
+  // A wider result button leaves the field less room, so it shows the end of the number, the part that was matched.
+  useEffect(() => {
+    const el = findInput.current;
+    if (el && result !== 'idle') el.scrollLeft = el.scrollWidth;
+  }, [result]);
+  const findLabel = (
+    <>
+      {result === 'found' ? <Check className="h-4 w-4" /> : result === 'idle' ? <Search className="h-4 w-4" /> : <Alert className="h-4 w-4" />}
+      {FIND_LABEL[result]}
+    </>
+  );
+  /** Read out by screen readers, since the result is otherwise shown only by the button and the seat. */
+  const findStatus = (
+    <span aria-live="polite" className="sr-only">
+      {found ? `Found ${found.name}, ${found.label}` : missed ? (many ? `More than one seat ends in ${missed}. Type more of the number.` : `${missed} is not in this room`) : ''}
+    </span>
+  );
   const changeLayout = (v: Layout) => {
     setLayout(v);
     setOpen(null);
@@ -177,7 +276,7 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
     const c = model.courseInfo[s.course];
     return (
       <li key={s.id}>
-        <button type="button" {...seatProps(s)} className={`flex w-full items-center gap-3 rounded-xl border border-line bg-surface p-3 text-left transition hover:border-brand data-[found=true]:border-brand data-[found=true]:ring-2 data-[found=true]:ring-brand ${spot !== null && keyOf(s) !== spot ? 'opacity-30' : ''}`}>
+        <button type="button" {...seatProps(s)} className={`flex w-full items-center gap-3 rounded-xl border border-line bg-surface p-3 text-left transition hover:border-brand data-[found=true]:border-success data-[found=true]:ring-2 data-[found=true]:ring-success ${spot !== null && keyOf(s) !== spot ? 'opacity-30' : ''}`}>
           <span className="mini-seat" data-tex={byKey.get(keyOf(s))?.tex ?? 0} data-me={s.me} style={hueStyle(byKey.get(keyOf(s))?.hue ?? 0)}>
             {tag(s)}
           </span>
@@ -206,15 +305,17 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
       style={{ '--cols': Math.max(dims.cols, 1), '--seat': `${Math.floor(seatPx)}px`, '--gap': `${Math.floor(gapFor(seatPx))}px`, '--axis': `${fit.axis}px` } as React.CSSProperties}
       data-small={seatPx < SMALL_SEAT}
       data-axes={fit.bothAxes ? 2 : 1}
+      data-finding={found !== null}
       {...(spot !== null ? { 'data-spot': spot } : {})}
     >
       {aside && <div className="lg:hidden">{aside}</div>}
       {/* Laid out by the card's own width, not the screen's: beside the legend on a tablet it is narrow. */}
-      <section className="card @container min-w-0 p-2 sm:p-4" aria-label="Seating plan">
-        {/* Narrow card: controls go under the view switch, and the search box opens under them on the left.
-            Wide card: both sit on the right. One breakpoint for both keeps the box under the Find button. */}
-        <div className="flex flex-col items-start gap-2 px-1 pb-3 @2xl:flex-row @2xl:justify-between">
-          <div className="min-w-0">
+      <section ref={card} className="card @container min-w-0 p-2 sm:p-4" aria-label="Seating plan">
+        {/* Narrow card: switch, note, then controls; the search opens under them.
+            Wide card: switch and controls share the top row and the note gets its own row, so the search
+            can open inline beside Find using the row's free space without squeezing the switch. */}
+        <div className="grid grid-cols-1 gap-2 px-1 pb-3 @2xl:grid-cols-[auto_minmax(0,1fr)] @2xl:items-center">
+          <div className="min-w-0 whitespace-nowrap">
             {official.grid.length > 0 ? (
               <>
                 <h2 className="sr-only">Seating plan</h2>
@@ -243,23 +344,51 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
             ) : (
               <h2 className="text-base font-bold">Seating plan</h2>
             )}
-            {grid.length > 0 && (
-              <p className="mt-1.5 text-xs text-muted">
-                {MIRRORED ? 'Left and right as the invigilator at the front sees it. Seat 1 is on your right.' : 'Seat 1 is on your left as you face the front.'}
-              </p>
-            )}
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              aria-expanded={findOpen}
-              aria-controls="find-seat"
-              onClick={() => (findOpen ? closeFind() : (setFindOpen(true), requestAnimationFrame(() => findInput.current?.focus())))}
-              className="btn btn-secondary btn-sm"
-            >
-              <Search className="h-4 w-4" />
-              Find
-            </button>
+          {grid.length > 0 && (
+            <p className="-mt-0.5 text-xs text-muted @2xl:col-span-2 @2xl:row-start-2">
+              {MIRRORED ? 'Left and right as the invigilator at the front sees it. Seat 1 is on your right.' : 'Seat 1 is on your left as you face the front.'}
+            </p>
+          )}
+          <div className="flex min-w-0 items-center gap-2 @2xl:col-start-2 @2xl:row-start-1 @2xl:justify-end">
+            {wide ? (
+              // Wide card: Find is the frame of an expanding search. Pressed, the frame grows to the left
+              // around the field, and Find stays inside it at the right end as the submit button.
+              <div className="relative min-w-0">
+              <form id="find-seat" role="search" onSubmit={onFind} className="find-morph" data-open={findOpen} data-closing={closing}>
+                {findOpen && (
+                  <>
+                    {findField('find-morph-input')}
+                    <button type="button" onClick={closeFind} aria-label="Close search" className="find-morph-close btn btn-quiet btn-icon h-7 min-h-7 w-7 flex-none rounded-lg">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </>
+                )}
+                <button
+                  type={findOpen ? 'submit' : 'button'}
+                  onClick={findOpen ? undefined : openFind}
+                  aria-expanded={findOpen}
+                  aria-controls="find-seat"
+                  className="find-morph-go"
+                  data-result={result}
+                >
+                  {findLabel}
+                </button>
+              </form>
+              {findOpen && findStatus}
+              </div>
+            ) : (
+              <button
+                type="button"
+                aria-expanded={findOpen}
+                aria-controls="find-seat"
+                onClick={() => (findOpen ? closeFind() : openFind())}
+                className="btn btn-secondary btn-sm"
+              >
+                <Search className="h-4 w-4" />
+                Find
+              </button>
+            )}
             {grid.length > 0 && (
               <div className="flex items-center rounded-xl ring-1 ring-line">
                 <button type="button" aria-label="Zoom out" disabled={zoom === 0} onClick={() => setZoom((z) => z - 1)} className="btn btn-quiet btn-sm btn-icon h-9 min-h-9 w-9 rounded-r-none"><Minus className="h-4 w-4" /></button>
@@ -270,42 +399,16 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
           </div>
         </div>
 
-        {findOpen && (
-          <form id="find-seat" role="search" onSubmit={onFind} className="max-w-md px-1 pt-1 pb-4 @2xl:ml-auto">
+        {findOpen && !inline && (
+          <form id="find-seat" role="search" onSubmit={onFind} className="find-row relative max-w-md px-1 pt-1 pb-4" data-closing={closing}>
             <div className="flex gap-2">
-              <label htmlFor="find-roll" className="sr-only">Roll number</label>
-              <input
-                ref={findInput}
-                id="find-roll"
-                value={query}
-                onChange={(e) => {
-                  setQuery(formatRegInput(e.target.value));
-                  setMissed(null);
-                }}
-                onKeyDown={(e) => e.key === 'Escape' && closeFind()}
-                placeholder="e.g. FA24-BSE-058"
-                autoComplete="off"
-                autoCapitalize="characters"
-                spellCheck={false}
-                enterKeyHint="search"
-                className="field min-h-10 min-w-0 flex-1 font-mono text-sm"
-              />
-              <button type="submit" className="btn btn-primary btn-sm min-h-10">Find</button>
+              {findField('field min-h-10 min-w-0 flex-1 font-mono text-sm')}
+              <button type="submit" className="find-go btn btn-primary btn-sm min-h-10 flex-none" data-result={result}>{findLabel}</button>
               <button type="button" onClick={closeFind} aria-label="Close search" className="btn btn-quiet btn-sm btn-icon h-10 min-h-10 w-10">
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p aria-live="polite" className="mt-2.5 text-sm empty:mt-0">
-              {missed ? (
-                <span className="font-semibold text-danger">Not in this room</span>
-              ) : found ? (
-                <button type="button" onClick={() => reveal('[data-found="true"]', true)} className="text-left">
-                  <span className="font-semibold">{found.name}</span>
-                  <span className="text-muted"> · {found.label}</span>
-                  {found.me && <span className="you-chip ml-2">You</span>}
-                </button>
-              ) : null}
-            </p>
+            {findStatus}
           </form>
         )}
 

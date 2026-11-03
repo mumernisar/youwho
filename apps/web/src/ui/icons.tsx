@@ -18,6 +18,7 @@ export const Door = (p: P) => base(<><path d="M5 21V4.5A1.5 1.5 0 0 1 6.5 3h11A1
 export const Chair = (p: P) => base(<><path d="M7 11V5.5A2.5 2.5 0 0 1 9.5 3h5A2.5 2.5 0 0 1 17 5.5V11" /><path d="M5 11h14v4H5zM7 15v6m10-6v6" /></>, p);
 export const Users = (p: P) => base(<><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.5a6.5 6.5 0 0 1 3.5 5.5" /></>, p);
 export const Layers = (p: P) => base(<path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5" />, p);
+export const Alert = (p: P) => base(<><circle cx="12" cy="12" r="9" /><path d="M12 7.5v5m0 3.5v.01" /></>, p);
 export const Check = (p: P) => base(<path d="m5 12.5 4.5 4.5L19 7.5" />, p);
 export const ThumbsUp = (p: P) => base(<path d="M7 10v10H4.5A1.5 1.5 0 0 1 3 18.5v-7A1.5 1.5 0 0 1 4.5 10H7Zm0 0 4-7a2.5 2.5 0 0 1 2.5 2.5V9h5.2a2 2 0 0 1 2 2.3l-1.3 7A2 2 0 0 1 17.4 20H7" />, p);
 export const Flag = (p: P) => base(<path d="M5 21V4m0 0h11l-2 4 2 4H5" />, p);
