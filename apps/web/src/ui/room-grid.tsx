@@ -209,8 +209,11 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
       {...(spot !== null ? { 'data-spot': spot } : {})}
     >
       {aside && <div className="lg:hidden">{aside}</div>}
-      <section className="card min-w-0 p-2 sm:p-4" aria-label="Seating plan">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-3 sm:items-start">
+      {/* Laid out by the card's own width, not the screen's: beside the legend on a tablet it is narrow. */}
+      <section className="card @container min-w-0 p-2 sm:p-4" aria-label="Seating plan">
+        {/* Narrow card: controls go under the view switch, and the search box opens under them on the left.
+            Wide card: both sit on the right. One breakpoint for both keeps the box under the Find button. */}
+        <div className="flex flex-col items-start gap-2 px-1 pb-3 @2xl:flex-row @2xl:justify-between">
           <div className="min-w-0">
             {official.grid.length > 0 ? (
               <>
@@ -268,7 +271,7 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
         </div>
 
         {findOpen && (
-          <form id="find-seat" role="search" onSubmit={onFind} className="px-1 pt-1 pb-4 sm:ml-auto sm:max-w-md">
+          <form id="find-seat" role="search" onSubmit={onFind} className="max-w-md px-1 pt-1 pb-4 @2xl:ml-auto">
             <div className="flex gap-2">
               <label htmlFor="find-roll" className="sr-only">Roll number</label>
               <input

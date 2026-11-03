@@ -7,7 +7,7 @@ import { DeptBadge } from '@/ui/dept-badge';
 import { ErrorState } from '@/ui/error-state';
 import { ArrowRight, Calendar, Chair, ThumbsUp, Users } from '@/ui/icons';
 import { RollForm } from '@/ui/roll-form';
-import { count, fmtUpdated, sourceHost } from '@/ui/format';
+import { count, fmtUpdated } from '@/ui/format';
 
 export const dynamic = 'force-dynamic';
 
@@ -87,7 +87,9 @@ export default async function Home() {
                     <DeptBadge slug={d.slug} label={d.label} />
                     <span className="min-w-0 flex-1">
                       <span className="line-clamp-2 leading-snug font-semibold">{d.label}</span>
-                      <span className="block truncate font-mono text-xs text-muted">{sourceHost(d.sourceUrl)}</span>
+                      <span className="block truncate text-xs text-muted">
+                        Updated <time dateTime={d.updatedAt}>{fmtUpdated(d.updatedAt)}</time>
+                      </span>
                     </span>
                     <span className="go">
                       <ArrowRight className="h-4 w-4" />
@@ -103,7 +105,6 @@ export default async function Home() {
                       <span className="font-semibold text-ink-2">{d.confirms}</span>
                       <span className="sr-only">looks right</span>
                     </span>
-                    <span className="ml-auto">Updated {fmtUpdated(d.updatedAt)}</span>
                   </span>
                 </Link>
               </li>
