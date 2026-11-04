@@ -761,6 +761,8 @@ Build in ten phases, each ending in a working state you have checked by hand, an
 10. **Phase 9 — Polish and launch**
     - Three themes without flash, Star button, reduced motion, empty and offline states, metadata and favicon, README with setup and deploy steps.
     - Check by hand: Lighthouse on the home page scores at least 95 for performance and accessibility on mobile; switching themes never flashes; production is deployed on Vercel and Render.
+11. **Phase 10 — Home screen app and saved papers**
+    - Working spec in `docs/phase-10-offline.md`. That file is temporary: when the phase is done, fold its lasting parts into this spec, then delete the file and this pointer.
 
 ## 11. Verification
 
