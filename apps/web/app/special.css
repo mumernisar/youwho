@@ -402,11 +402,12 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: calc(var(--seat) * 2.6);
-  height: calc(var(--seat) * 2.6);
+  width: calc(var(--seat) * 2.2);
+  height: calc(var(--seat) * 2.2);
   translate: -50% -50%;
   overflow: visible;
   pointer-events: none;
+  opacity: 0.6;
   transition: opacity 160ms ease;
 }
 .seat-fx[data-layer='back'] {
@@ -427,16 +428,16 @@
 .seat[data-fx]:not([data-me='true'])::before {
   box-shadow:
     0 0 0 1.5px var(--fx-a),
-    0 0 0 3px color-mix(in oklab, var(--fx-c) 80%, transparent),
-    0 0 10px 2px color-mix(in oklab, var(--fx-a) 65%, transparent);
-  animation: fx-cushion 2.4s ease-in-out infinite;
+    0 0 0 2.5px color-mix(in oklab, var(--fx-c) 45%, transparent),
+    0 0 6px 1px color-mix(in oklab, var(--fx-a) 40%, transparent);
+  animation: fx-cushion 3.2s ease-in-out infinite;
 }
 @keyframes fx-cushion {
   50% {
     box-shadow:
       0 0 0 1.5px var(--fx-a),
-      0 0 0 3px color-mix(in oklab, var(--fx-c) 80%, transparent),
-      0 0 16px 5px color-mix(in oklab, var(--fx-a) 85%, transparent);
+      0 0 0 2.5px color-mix(in oklab, var(--fx-c) 45%, transparent),
+      0 0 9px 2px color-mix(in oklab, var(--fx-a) 55%, transparent);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -523,16 +524,17 @@
   flex: none;
   width: var(--badge, 3.25rem);
   height: var(--badge, 3.25rem);
-  margin: calc(var(--badge, 3.25rem) * 0.45);
+  margin: calc(var(--badge, 3.25rem) * 0.35);
 }
 .fx-badge svg {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 200%;
-  height: 200%;
+  width: 175%;
+  height: 175%;
   translate: -50% -50%;
   overflow: visible;
+  opacity: 0.72;
 }
 
 /* ======================= banner ======================= */
@@ -707,6 +709,106 @@
   }
 }
 
+/* ======================= cover when a room opens ======================= */
+
+/*
+ * 4 seconds in all. The cover fades in (0.3s), holds, and fades out (the last 0.6s). Each name enters
+ * from the left in 0.45s, stays 2s and leaves to the right in 0.45s, one after another by 60ms.
+ * Dark cover on a light theme, white on a dark one; it ends hidden and never takes clicks.
+ */
+.fx-curtain {
+  --curtain-bg: #0c0b0a;
+  --curtain-ink: #ffffff;
+  --curtain-dim: rgb(255 255 255 / 0.7);
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: var(--curtain-bg);
+  color: var(--curtain-ink);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  animation: fx-curtain 4s ease-in-out both;
+}
+:root[data-theme='dusk'] .fx-curtain {
+  --curtain-bg: #ffffff;
+  --curtain-ink: #141210;
+  --curtain-dim: rgb(20 18 16 / 0.7);
+}
+@keyframes fx-curtain {
+  0% {
+    opacity: 0;
+    visibility: visible;
+  }
+  8%,
+  85% {
+    opacity: 1;
+    visibility: visible;
+  }
+  99.9% {
+    opacity: 0;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.fx-curtain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1.1rem;
+  width: min(100%, 34rem);
+}
+.fx-curtain-row {
+  padding-left: 0.9rem;
+  border-left: 4px solid var(--fx-a, currentColor);
+  opacity: 0;
+  animation: fx-curtain-row 2.9s cubic-bezier(0.25, 0.8, 0.3, 1) both;
+  animation-delay: calc(0.25s + var(--i, 0) * 60ms);
+}
+@keyframes fx-curtain-row {
+  0% {
+    opacity: 0;
+    transform: translateX(-60vw);
+  }
+  15.5%,
+  84.5% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(60vw);
+  }
+}
+.fx-curtain-reg {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--curtain-dim);
+}
+.fx-curtain-name {
+  font-size: clamp(1.4rem, 5vw, 2.1rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+/* With reduced motion the names do not slide: they stay put while the cover fades in and out. */
+@media (prefers-reduced-motion: reduce) {
+  .fx-curtain-row {
+    animation: none;
+    opacity: 1;
+  }
+}
+
 /* ======================= page wash ======================= */
 
 /*
@@ -720,20 +822,38 @@
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
+  opacity: 0.5;
 }
 /* html:root outranks the theme blocks, which come later in the cascade. */
 html:root:has(.fx-wash) {
-  --wash-mix: 22%;
+  --wash-mix: 11%;
   /* Muted text sits on the tint, so it is a little darker than Sand's own to keep 4.5:1. */
   --muted: #5a4d3c;
   background: color-mix(in oklab, var(--wash) var(--wash-mix), var(--bg));
 }
 :root[data-theme='dusk']:has(.fx-wash):is(html) {
-  --wash-mix: 15%;
+  --wash-mix: 8%;
   --muted: #a1978a;
 }
 :root:has(.fx-wash) body {
   background: transparent;
+}
+/* 085's page colour stays at the stronger first strength; everyone else's is toned down above. */
+.fx-wash[data-fx='085'] {
+  opacity: 1;
+}
+html:root:has(.fx-wash[data-fx='085']) {
+  --wash-mix: 22%;
+}
+:root[data-theme='dusk']:has(.fx-wash[data-fx='085']):is(html) {
+  --wash-mix: 15%;
+}
+:root:has(.fx-wash[data-fx='085']) :is(.card, .card-link) {
+  background: color-mix(in oklab, var(--wash) 6%, var(--surface));
+  border-color: color-mix(in oklab, var(--wash) 32%, var(--line));
+}
+:root:has(.fx-wash[data-fx='085']) .room-floor {
+  background-color: color-mix(in oklab, var(--wash) 8%, var(--floor));
 }
 :root:has(.fx-wash[data-fx='118']) {
   --wash: var(--fx-118-a);
@@ -754,11 +874,11 @@ html:root:has(.fx-wash) {
   --wash: var(--fx-085-a);
 }
 :root:has(.fx-wash) :is(.card, .card-link) {
-  background: color-mix(in oklab, var(--wash) 6%, var(--surface));
-  border-color: color-mix(in oklab, var(--wash) 32%, var(--line));
+  background: color-mix(in oklab, var(--wash) 3%, var(--surface));
+  border-color: color-mix(in oklab, var(--wash) 18%, var(--line));
 }
 :root:has(.fx-wash) .room-floor {
-  background-color: color-mix(in oklab, var(--wash) 8%, var(--floor));
+  background-color: color-mix(in oklab, var(--wash) 4%, var(--floor));
 }
 
 .fx-wash-glow {

@@ -146,13 +146,45 @@ function headline(people: Present[], where: 'room' | 'papers'): string {
 }
 
 /**
- * Announces who is here: the page colour behind it and a banner whose rows slide in from alternating
+ * A cover that falls over the whole room page for a moment: dark on a light theme, white on a dark one.
+ * Each name slides in from the left, stays about two seconds and leaves to the right; then the cover fades.
+ * It is all CSS (4 seconds in all) and ends hidden, so it leaves the page and the reading order alone.
+ */
+function Curtain({ list, label }: { list: Present[]; label: string }) {
+  return (
+    <div className="fx-curtain" role="status" aria-label={label}>
+      <ul className="fx-curtain-list">
+        {list.map((p, i) => {
+          const who = specialById(p.id);
+          return (
+            <li key={p.id} className="fx-curtain-row" data-fx={p.id} style={{ '--i': i } as React.CSSProperties}>
+              <p className="fx-curtain-reg">{who.reg}</p>
+              <p className="fx-curtain-name">{who.name}</p>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * Announces who is here. The page colour is set by the top person. In a room the names come as a cover
+ * that passes (see `Curtain`); on a papers page they sit in a banner whose rows slide in from alternating
  * sides, the owner's with a larger entrance. `where` says whether they sit in this room or the page is theirs.
  */
 export function SpecialStage({ people, where }: { people: Present[]; where: 'room' | 'papers' }) {
   const list = byRank(people);
   const top = list[0];
   if (!top) return null;
+  if (where === 'room') {
+    return (
+      <>
+        <SpecialWash id={top.id} />
+        <Curtain list={list} label={headline(list, where)} />
+      </>
+    );
+  }
   return (
     <>
       <SpecialWash id={top.id} />
