@@ -19,7 +19,7 @@ export default tseslint.config(
   // The web app's service worker: plain JavaScript in the worker scope
   {
     files: ['apps/web/public/sw.js'],
-    languageOptions: { sourceType: 'script', globals: { self: 'readonly', caches: 'readonly', fetch: 'readonly', URL: 'readonly' } },
+    languageOptions: { sourceType: 'script', globals: { self: 'readonly', caches: 'readonly', fetch: 'readonly', URL: 'readonly', Response: 'readonly', setTimeout: 'readonly' } },
   },
   {
     rules: {

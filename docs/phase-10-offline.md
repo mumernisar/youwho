@@ -133,6 +133,8 @@ Hand-written, about 100 lines, no Workbox. Served with `Cache-Control: no-cache,
 | Request | Behaviour |
 | --- | --- |
 | Navigation to `/r/{REG}`, saved | The cached `/saved` page at once (it then refreshes itself) |
+| Navigation to `/saved` | The cached `/saved` page at once; network if it is missing |
+| App launch (no window open), something saved, no answer within 1 s | The waiting screen (below); the request keeps loading behind it |
 | Any other navigation | Network; if that fails, the cached `/saved` page (the list); if that is missing too, the failure |
 | `/_next/static/…` in `yw-shell-v1` | Cache first |
 | Everything else, including `/api/*`, `/_vercel/*`, other origins and non-GET | Not touched |
@@ -141,6 +143,17 @@ Hand-written, about 100 lines, no Workbox. Served with `Cache-Control: no-cache,
 - `install` skips waiting; `activate` claims clients and deletes unknown `yw-*` caches.
 - Registered by `AppShell` only when running standalone, and only after `load`. In a browser tab nothing registers.
 - On Android the app and Chrome share an origin, so the worker also serves saved copies in Chrome tabs. This is accepted.
+
+### Waiting screen
+
+The phone's own launch screen (manifest background and icon) cannot hold a button, so on a slow launch the worker replaces it with a page that looks the same.
+
+- Shown only when the app is starting (no youwho window open), at least one number is saved and the offline page is cached, and the server has not answered within 1 s. A fast launch never sees it.
+- Static HTML inside `sw.js` (about 3 KB, no extra request, no React). Sand colours as CSS variables, as in the manifest: a worker cannot read the theme cookie. System font, so nothing has to load.
+- Layout: the app icon in the middle with "Connecting…" under it (`role="status"`). At the bottom, inside the safe area and in thumb reach: a full-width (max 360 px) brand button **Open saved papers**, and under it "Papers saved on this phone open without internet." The footer fades in (none with reduced motion).
+- The original request keeps loading. When it answers, the worker tells the screen, which reopens the same URL and gets that response (no second request). Held responses are dropped after 10 s, and a launch never takes one.
+- If the request fails, the status reads "No connection" and the button stays. The screen reloads itself on the `online` event.
+- **Open saved papers** goes to `/saved`, which the worker answers from the cache.
 
 ### Opening a saved number
 
@@ -280,6 +293,7 @@ Use a production build (`next build && next start`, or a Vercel preview). Items 
 11. Rebuild, open a saved number online, then go offline: the offline page still loads.
 12. Kill switch: `OFFLINE_ENABLED = false` and `RETIRED = true`, rebuild, open the app online: the worker and `yw-*` caches are gone.
 13. Lighthouse on home, papers and room: scores as in section 9.
+14. Installed app with a saved number, slow network (DevTools "Slow 3G" or a weak signal): launch shows the waiting screen after about 1 s, then the home page by itself; tapping Open saved papers lists the saved numbers. On a fast network the waiting screen never appears.
 14. 360 px and desktop in Sand and Dusk: Install app, sheet and save strip fit without horizontal scroll.
 
 Checked during the build (Playwright, emulated phones and an emulated installed app):
