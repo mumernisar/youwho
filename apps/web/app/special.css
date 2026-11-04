@@ -1,0 +1,979 @@
+/*
+ * Special seats: the owner, the A/B testers and the people who starred the repo.
+ * Drawings are in src/ui/special-fx.tsx; this file holds their colours and all of their motion.
+ *
+ * Colours are effect tokens, not theme tokens: each person has a fixed palette that reads on both
+ * themes (a = main, b = light, c = dark, d = extra). Pages never hard-code them; they read --fx-a,
+ * --fx-b and --fx-c, which any element gets from data-fx="<id>".
+ */
+
+:root {
+  /* 118 — owner: signal teal, ivory, deep teal ink */
+  --fx-118-a: #0fd2b4;
+  --fx-118-b: #fff1c9;
+  --fx-118-c: #04282d;
+  /* 077 — gold, crimson, black, with a cream hot core */
+  --fx-077-a: #ffbe0b;
+  --fx-077-b: #d2101e;
+  --fx-077-c: #0b0708;
+  --fx-077-d: #fff0a8;
+  /* 073 — cobalt */
+  --fx-073-a: #2a6bff;
+  --fx-073-b: #bad6ff;
+  --fx-073-c: #071a4d;
+  /* 092 — emerald and lime */
+  --fx-092-a: #11b476;
+  --fx-092-b: #d4ff5f;
+  --fx-092-c: #04301d;
+  /* 127 — rose */
+  --fx-127-a: #ff2e86;
+  --fx-127-b: #ffd2e3;
+  --fx-127-c: #3a0620;
+  /* 085 — lavender */
+  --fx-085-a: #9b7dff;
+  --fx-085-b: #f3efff;
+  --fx-085-c: #1a1240;
+}
+
+[data-fx='118'] {
+  --fx-a: var(--fx-118-a);
+  --fx-b: var(--fx-118-b);
+  --fx-c: var(--fx-118-c);
+}
+[data-fx='077'] {
+  --fx-a: var(--fx-077-a);
+  --fx-b: var(--fx-077-b);
+  --fx-c: var(--fx-077-c);
+}
+[data-fx='073'] {
+  --fx-a: var(--fx-073-a);
+  --fx-b: var(--fx-073-b);
+  --fx-c: var(--fx-073-c);
+}
+[data-fx='092'] {
+  --fx-a: var(--fx-092-a);
+  --fx-b: var(--fx-092-b);
+  --fx-c: var(--fx-092-c);
+}
+[data-fx='127'] {
+  --fx-a: var(--fx-127-a);
+  --fx-b: var(--fx-127-b);
+  --fx-c: var(--fx-127-c);
+}
+[data-fx='085'] {
+  --fx-a: var(--fx-085-a);
+  --fx-b: var(--fx-085-b);
+  --fx-c: var(--fx-085-c);
+}
+
+/* ======================= motion for the drawings ======================= */
+
+.seat-fx *,
+.fx-badge * {
+  animation-duration: var(--dur, 3s);
+  animation-delay: var(--delay, 0s);
+}
+
+.fx-spin {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: fx-rotate var(--dur, 20s) linear infinite;
+}
+.fx-spin.fx-rev {
+  animation-direction: reverse;
+}
+@keyframes fx-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fx-breathe {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: fx-breathe var(--dur, 3s) ease-in-out infinite;
+}
+@keyframes fx-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.97);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.045);
+  }
+}
+
+.fx-flicker {
+  transform-box: view-box;
+  transform-origin: 50% 60%;
+  animation: fx-flicker var(--dur, 1.7s) steps(1, end) infinite;
+}
+@keyframes fx-flicker {
+  0% {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  17% {
+    opacity: 0.7;
+    transform: scale(0.96);
+  }
+  29% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+  48% {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+  63% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  81% {
+    opacity: 0.75;
+    transform: scale(0.97);
+  }
+}
+
+.fx-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fx-pulse var(--dur, 2s) ease-in-out infinite;
+}
+@keyframes fx-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
+  }
+}
+
+.fx-blink {
+  animation: fx-blink var(--dur, 3.6s) ease-in-out infinite;
+}
+@keyframes fx-blink {
+  0%,
+  100% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.fx-sweep {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fx-sweep var(--dur, 3.6s) ease-in-out infinite;
+}
+@keyframes fx-sweep {
+  0% {
+    transform: translateX(0) skewX(-18deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(46px) skewX(-18deg);
+    opacity: 1;
+  }
+  58%,
+  100% {
+    transform: translateX(46px) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
+.fx-twinkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fx-twinkle var(--dur, 2.4s) ease-in-out infinite;
+}
+@keyframes fx-twinkle {
+  0%,
+  100% {
+    transform: scale(0.15) rotate(0deg);
+    opacity: 0;
+  }
+  45% {
+    transform: scale(1) rotate(45deg);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(0.85) rotate(60deg);
+    opacity: 1;
+  }
+}
+
+.fx-flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: fx-flame var(--dur, 1.2s) ease-in-out infinite alternate;
+}
+@keyframes fx-flame {
+  0% {
+    transform: scale(1, 0.84) skewX(-6deg);
+  }
+  45% {
+    transform: scale(0.92, 1.14) skewX(5deg);
+  }
+  100% {
+    transform: scale(1.06, 0.94) skewX(-3deg);
+  }
+}
+
+.fx-march {
+  animation: fx-march var(--dur, 2s) linear infinite;
+}
+@keyframes fx-march {
+  from {
+    stroke-dashoffset: var(--from, 0);
+  }
+  to {
+    stroke-dashoffset: var(--len, -20);
+  }
+}
+
+.fx-rise {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fx-rise var(--dur, 2.4s) ease-out infinite;
+}
+@keyframes fx-rise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-34px) scale(0.3);
+    opacity: 0;
+  }
+}
+
+.fx-spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fx-spark var(--dur, 5s) ease-in-out infinite;
+}
+@keyframes fx-spark {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(45deg) scale(1.16);
+  }
+  100% {
+    transform: rotate(90deg) scale(1);
+  }
+}
+
+.fx-ripple {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: fx-ripple var(--dur, 3.3s) ease-out infinite;
+}
+@keyframes fx-ripple {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+.fx-lock {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: fx-lock var(--dur, 2.4s) ease-in-out infinite;
+}
+@keyframes fx-lock {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.fx-blip {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fx-blip var(--dur, 5s) ease-out infinite;
+}
+@keyframes fx-blip {
+  0% {
+    opacity: 1;
+    transform: scale(1.6);
+  }
+  35% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.05;
+    transform: scale(0.7);
+  }
+}
+
+.fx-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fx-node var(--dur, 3.6s) ease-in-out infinite;
+}
+@keyframes fx-node {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.85);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+  30% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+}
+
+.fx-draw {
+  animation: fx-draw var(--dur, 9s) ease-in-out infinite;
+}
+@keyframes fx-draw {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  45%,
+  70% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -100;
+    opacity: 0;
+  }
+}
+
+.fx-wobble {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fx-wobble var(--dur, 4.4s) ease-in-out infinite;
+}
+@keyframes fx-wobble {
+  0%,
+  100% {
+    transform: rotate(-9deg) scale(1);
+  }
+  50% {
+    transform: rotate(9deg) scale(1.12);
+  }
+}
+
+.fx-shoot {
+  animation: fx-shoot var(--dur, 5.5s) ease-in infinite;
+}
+@keyframes fx-shoot {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  4% {
+    opacity: 1;
+  }
+  20%,
+  100% {
+    transform: translate(46px, 20px);
+    opacity: 0;
+  }
+}
+
+/* With reduced motion the drawings stand still, and the orbit is one dot on its curve. */
+.fx-orbit-still {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .seat-fx *,
+  .fx-badge *,
+  .fx-wash *,
+  .fx-banner *,
+  .fx-credits * {
+    animation: none !important;
+  }
+  .fx-orbit-live {
+    display: none;
+  }
+  .fx-orbit-still {
+    display: inline;
+  }
+}
+
+/* ======================= on the seat map ======================= */
+
+/* Effects reach past the seat, so the map stacks them: the back layer under every seat, the front over. */
+.room-canvas {
+  isolation: isolate;
+}
+.room[data-fx='true'] .room-canvas {
+  padding-inline: calc(var(--seat) * 0.85 + 0.25rem);
+}
+.seat-fx {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--seat) * 2.6);
+  height: calc(var(--seat) * 2.6);
+  translate: -50% -50%;
+  overflow: visible;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+.seat-fx[data-layer='back'] {
+  z-index: -1;
+}
+.seat-fx[data-layer='front'] {
+  z-index: 3;
+}
+.seat-fx[data-dim='true'] {
+  opacity: 0.16;
+}
+.seat-fx[data-layer='front'] .fx-orbit,
+.seat-fx[data-layer='front'] .fx-orbit * {
+  filter: none;
+}
+
+/* The cushion itself carries the person's colour as a ring and a glow. */
+.seat[data-fx]:not([data-me='true'])::before {
+  box-shadow:
+    0 0 0 1.5px var(--fx-a),
+    0 0 0 3px color-mix(in oklab, var(--fx-c) 80%, transparent),
+    0 0 10px 2px color-mix(in oklab, var(--fx-a) 65%, transparent);
+  animation: fx-cushion 2.4s ease-in-out infinite;
+}
+@keyframes fx-cushion {
+  50% {
+    box-shadow:
+      0 0 0 1.5px var(--fx-a),
+      0 0 0 3px color-mix(in oklab, var(--fx-c) 80%, transparent),
+      0 0 16px 5px color-mix(in oklab, var(--fx-a) 85%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seat[data-fx]:not([data-me='true'])::before {
+    animation: none;
+  }
+}
+
+/* A person's row in the lists under the map. */
+.fx-listed[data-fx] {
+  border-color: var(--fx-a);
+  box-shadow: inset 4px 0 0 var(--fx-a);
+}
+
+.fx-role {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 1.5rem;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--fx-a) 60%, var(--line));
+  background: color-mix(in oklab, var(--fx-a) 14%, var(--surface));
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.fx-role::before {
+  content: '';
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--fx-a);
+  box-shadow: 0 0 0 1.5px color-mix(in oklab, var(--fx-c) 70%, transparent);
+}
+
+/* ======================= small picture of a person ======================= */
+
+.fx-badge {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--badge, 3.25rem);
+  height: var(--badge, 3.25rem);
+  margin: calc(var(--badge, 3.25rem) * 0.45);
+}
+.fx-badge svg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 200%;
+  height: 200%;
+  translate: -50% -50%;
+  overflow: visible;
+}
+
+/* ======================= banner ======================= */
+
+.fx-banner {
+  position: relative;
+  margin-top: 1rem;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid color-mix(in oklab, var(--fx-a) 55%, var(--line));
+  background: color-mix(in oklab, var(--fx-a) 9%, var(--surface));
+  box-shadow: var(--shadow);
+  animation: fx-banner-in 0.5s ease-out both;
+}
+@keyframes fx-banner-in {
+  from {
+    opacity: 0;
+  }
+}
+.fx-banner-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.7rem 1rem 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.fx-banner-head::before {
+  content: '';
+  width: 1.6rem;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--fx-a), var(--fx-b));
+}
+.fx-banner-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.35rem 0.5rem 0.6rem;
+  display: grid;
+  gap: 0 0.5rem;
+}
+/* Wide: the owner has the first row to themselves, everyone else shares two columns. */
+@media (min-width: 40rem) {
+  .fx-banner-list {
+    grid-template-columns: 1fr 1fr;
+  }
+  .fx-person[data-owner='true'] {
+    grid-column: 1 / -1;
+  }
+}
+.fx-person {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+  border-radius: 12px;
+  overflow: hidden;
+  animation: fx-from-left 0.75s cubic-bezier(0.2, 0.85, 0.25, 1) both;
+  animation-delay: calc(var(--i, 0) * 160ms + 150ms);
+}
+.fx-person[data-side='right'] {
+  animation-name: fx-from-right;
+}
+.fx-person {
+  --badge: 2.5rem;
+  border-top: 1px dashed color-mix(in oklab, var(--ink) 16%, transparent);
+}
+.fx-person:first-child {
+  border-top: 0;
+}
+@keyframes fx-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-70px);
+  }
+}
+@keyframes fx-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(70px);
+  }
+}
+.fx-person-text {
+  min-width: 0;
+  flex: 1;
+}
+.fx-person-reg {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-2);
+  letter-spacing: 0.02em;
+}
+.fx-person-name {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.fx-person-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+/* The owner's entry: larger, its name settles into place and a band of light crosses the row. */
+.fx-person[data-owner='true'] {
+  padding-block: 0.6rem;
+  background: linear-gradient(100deg, color-mix(in oklab, var(--fx-a) 22%, transparent), transparent 70%);
+  animation-name: fx-owner-in;
+  animation-duration: 1.1s;
+  animation-delay: 0.1s;
+}
+@keyframes fx-owner-in {
+  from {
+    opacity: 0;
+    transform: translateX(-90px) scale(0.96);
+    filter: blur(6px);
+  }
+  60% {
+    filter: blur(0);
+  }
+}
+.fx-person[data-owner='true'] .fx-person-name {
+  font-size: 1.4rem;
+  animation: fx-name-in 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) 0.35s both;
+}
+@keyframes fx-name-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.32em;
+  }
+}
+.fx-person[data-owner='true']::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 -40%;
+  width: 30%;
+  background: linear-gradient(100deg, transparent, color-mix(in oklab, var(--fx-b) 55%, transparent), transparent);
+  transform: skewX(-18deg);
+  animation: fx-owner-shine 4.5s ease-in-out 1.4s infinite;
+  pointer-events: none;
+}
+@keyframes fx-owner-shine {
+  0% {
+    left: -40%;
+  }
+  35%,
+  100% {
+    left: 130%;
+  }
+}
+.fx-person[data-owner='true'] {
+  --badge: 4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-banner,
+  .fx-person,
+  .fx-person *,
+  .fx-person::after {
+    animation: none !important;
+  }
+  .fx-person[data-owner='true']::after {
+    display: none;
+  }
+}
+
+/* ======================= page wash ======================= */
+
+/*
+ * The page takes the top person's colour: the page background is tinted, cards pick up a little of it,
+ * and a fixed layer behind the content draws that person's pattern. Text colours do not change, and the
+ * tint is kept light enough for them to stay readable.
+ */
+.fx-wash {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* html:root outranks the theme blocks, which come later in the cascade. */
+html:root:has(.fx-wash) {
+  --wash-mix: 22%;
+  /* Muted text sits on the tint, so it is a little darker than Sand's own to keep 4.5:1. */
+  --muted: #5a4d3c;
+  background: color-mix(in oklab, var(--wash) var(--wash-mix), var(--bg));
+}
+:root[data-theme='dusk']:has(.fx-wash):is(html) {
+  --wash-mix: 15%;
+  --muted: #a1978a;
+}
+:root:has(.fx-wash) body {
+  background: transparent;
+}
+:root:has(.fx-wash[data-fx='118']) {
+  --wash: var(--fx-118-a);
+}
+:root:has(.fx-wash[data-fx='077']) {
+  --wash: var(--fx-077-a);
+}
+:root:has(.fx-wash[data-fx='073']) {
+  --wash: var(--fx-073-a);
+}
+:root:has(.fx-wash[data-fx='092']) {
+  --wash: var(--fx-092-a);
+}
+:root:has(.fx-wash[data-fx='127']) {
+  --wash: var(--fx-127-a);
+}
+:root:has(.fx-wash[data-fx='085']) {
+  --wash: var(--fx-085-a);
+}
+:root:has(.fx-wash) :is(.card, .card-link) {
+  background: color-mix(in oklab, var(--wash) 6%, var(--surface));
+  border-color: color-mix(in oklab, var(--wash) 32%, var(--line));
+}
+:root:has(.fx-wash) .room-floor {
+  background-color: color-mix(in oklab, var(--wash) 8%, var(--floor));
+}
+
+.fx-wash-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(60% 50% at 85% -5%, color-mix(in oklab, var(--fx-a) 34%, transparent), transparent 70%),
+    radial-gradient(55% 50% at 0% 105%, color-mix(in oklab, var(--fx-b) 26%, transparent), transparent 70%);
+  animation: fx-glow 14s ease-in-out infinite alternate;
+}
+@keyframes fx-glow {
+  to {
+    transform: scale(1.12) translate(-2%, 1.5%);
+    opacity: 0.8;
+  }
+}
+.fx-wash-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.fx-wash-slide {
+  animation: fx-wash-slide var(--dur, 40s) linear infinite;
+}
+@keyframes fx-wash-slide {
+  to {
+    transform: translate(var(--dx, 56px), var(--dy, 56px));
+  }
+}
+.fx-wash-beam {
+  position: absolute;
+  inset: -20% auto -20% -30%;
+  width: 22%;
+  background: linear-gradient(100deg, transparent, color-mix(in oklab, var(--fx-a) 22%, transparent), transparent);
+  transform: skewX(-16deg);
+  animation: fx-beam 13s ease-in-out infinite;
+}
+@keyframes fx-beam {
+  0% {
+    left: -30%;
+  }
+  60%,
+  100% {
+    left: 130%;
+  }
+}
+.fx-wash-heat {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 45%;
+  background: linear-gradient(to top, color-mix(in oklab, var(--fx-b) 30%, transparent), transparent);
+  animation: fx-heat 3.2s ease-in-out infinite alternate;
+}
+@keyframes fx-heat {
+  to {
+    opacity: 0.65;
+    height: 52%;
+  }
+}
+.fx-wash-ember {
+  position: absolute;
+  bottom: -2%;
+  width: var(--s, 5px);
+  height: var(--s, 5px);
+  border-radius: 999px;
+  background: var(--k, var(--fx-a));
+  box-shadow: 0 0 8px 2px color-mix(in oklab, var(--k, var(--fx-a)) 70%, transparent);
+  animation: fx-ember var(--dur, 12s) linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes fx-ember {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(var(--drift, 30px), -105vh);
+    opacity: 0;
+  }
+}
+.fx-wash-ring {
+  position: absolute;
+  left: 8%;
+  bottom: -6%;
+  width: 46vmax;
+  height: 46vmax;
+  margin: -23vmax 0 0 -23vmax;
+  border: 2px solid color-mix(in oklab, var(--fx-a) 55%, transparent);
+  border-radius: 999px;
+  animation: fx-ring 9s ease-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes fx-ring {
+  0% {
+    transform: scale(0.05);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+.fx-wash-scan {
+  position: absolute;
+  inset: -30% 0 auto 0;
+  height: 30%;
+  background: linear-gradient(to bottom, transparent, color-mix(in oklab, var(--fx-b) 30%, transparent) 70%, color-mix(in oklab, var(--fx-a) 45%, transparent) 99%, transparent);
+  animation: fx-scan 9s linear infinite;
+}
+@keyframes fx-scan {
+  to {
+    transform: translateY(440%);
+  }
+}
+.fx-wash-star {
+  position: absolute;
+  width: var(--s, 3px);
+  height: var(--s, 3px);
+  border-radius: 999px;
+  background: var(--fx-a);
+  box-shadow: 0 0 6px 1px color-mix(in oklab, var(--fx-a) 70%, transparent);
+  animation: fx-star var(--dur, 4s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes fx-star {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+}
+.fx-wash-shoot {
+  position: absolute;
+  left: var(--x, 10%);
+  top: var(--y, 8%);
+  width: 120px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--fx-a));
+  transform: rotate(24deg);
+  opacity: 0;
+  animation: fx-wash-shoot 9s ease-in infinite;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes fx-wash-shoot {
+  0% {
+    opacity: 0;
+    translate: 0 0;
+  }
+  3% {
+    opacity: 1;
+  }
+  12%,
+  100% {
+    opacity: 0;
+    translate: 38vw 17vw;
+  }
+}
+
+/* ======================= credits on the home page ======================= */
+
+.fx-credits {
+  position: relative;
+}
+.fx-owner-card {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.25rem;
+  overflow: hidden;
+  padding: 1.1rem 1.25rem;
+  border-radius: 20px;
+  border: 1px solid color-mix(in oklab, var(--fx-a) 55%, var(--line));
+  background:
+    radial-gradient(70% 140% at 0% 50%, color-mix(in oklab, var(--fx-a) 20%, transparent), transparent 70%),
+    var(--surface);
+  box-shadow: var(--shadow);
+}
+.fx-owner-card .fx-badge {
+  --badge: 5rem;
+}
+.fx-owner-card::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 -40%;
+  width: 28%;
+  background: linear-gradient(100deg, transparent, color-mix(in oklab, var(--fx-b) 55%, transparent), transparent);
+  transform: skewX(-18deg);
+  animation: fx-owner-shine 6s ease-in-out infinite;
+  pointer-events: none;
+}
+.fx-count {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.75rem;
+  min-width: 1.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  text-align: center;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+}
+.fx-roll {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.15rem 0.5rem 0.15rem 0.15rem;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  --badge: 2.6rem;
+}
+.fx-roll + .fx-roll {
+  border-top: 1px dashed color-mix(in oklab, var(--ink) 14%, transparent);
+  border-radius: 0 0 14px 14px;
+}

@@ -7,6 +7,7 @@ import { DeptBadge } from '@/ui/dept-badge';
 import { ErrorState } from '@/ui/error-state';
 import { ArrowRight, Calendar, Chair, ThumbsUp, Users } from '@/ui/icons';
 import { RollForm } from '@/ui/roll-form';
+import { SpecialCredits } from '@/ui/special-credits';
 import { count, fmtUpdated } from '@/ui/format';
 
 export const dynamic = 'force-dynamic';
@@ -115,6 +116,8 @@ export default async function Home() {
           </ul>
         )}
       </section>
+
+      <SpecialCredits repoUrl={s.github.url} />
     </>
   );
 }

@@ -5,6 +5,8 @@ import { MIRRORED, type ColourBy, type LegendItem, type RoomModel, type SeatMode
 import { ColourToggle, Legend } from './room-legend';
 import { SeatPopover } from './seat-popover';
 import { rollOrderModel } from './roll-order';
+import { SeatFx } from './special-fx';
+import { roleText, specialById } from './special-people';
 import { formatRegInput } from './format';
 import { hueStyle } from './palette';
 import { Alert, Check, CornerBottomRight, CornerTopRight, Minus, Plus, Search, X } from './icons';
@@ -52,15 +54,19 @@ const WIDE_CARD = 672;
 type FindResult = 'idle' | 'found' | 'missed' | 'many';
 const FIND_LABEL: Record<FindResult, string> = { idle: 'Find', found: 'Found', missed: 'Not found', many: 'Type more' };
 
+/** Seat effects reach 0.8 of a seat past each side, so a room with some leaves that much room on both. */
+const FX_SPAN = 1.7;
+
 /** Largest seat that fits `width`, so the whole room shows without scrolling when it can. */
-function fitRoom(width: number, cols: number): Fit {
+function fitRoom(width: number, cols: number, fx: boolean): Fit {
   const bothAxes = width >= NARROW;
   const axis = bothAxes ? 18 : 14;
   const axes = bothAxes ? 2 : 1;
   const gaps = cols + axes - 1;
   const room = width - PAD - axes * axis;
-  let s = room / (cols + gaps * 0.22);
-  if (gapFor(s) === 4) s = (room - gaps * 4) / cols;
+  const span = cols + (fx ? FX_SPAN : 0);
+  let s = room / (span + gaps * 0.22);
+  if (gapFor(s) === 4) s = (room - gaps * 4) / span;
   return { seat: Math.max(MIN_SEAT, Math.min(MAX_SEAT, s)), axis, bothAxes };
 }
 
@@ -100,6 +106,7 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
   // Zoom is a wide-card control; a narrow card always shows the room fitted to it.
   const seatPx = fit.seat * (wide ? ZOOMS[zoom]! : 1);
   const mine = model.mySection;
+  const hasFx = model.specials.length > 0;
 
   const items = by === 'course' ? model.courses : model.sections;
   const byKey = useMemo(() => new Map(items.map((i) => [i.key, i])), [items]);
@@ -168,12 +175,12 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
   useEffect(() => {
     const el = scroller.current;
     if (!el) return;
-    const measure = () => setFit(fitRoom(el.clientWidth, Math.max(dims.cols, 1)));
+    const measure = () => setFit(fitRoom(el.clientWidth, Math.max(dims.cols, 1), hasFx));
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [dims.cols]);
+  }, [dims.cols, hasFx]);
   useEffect(() => findMe(), [findMe, fit, layout]);
   const openFind = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -273,7 +280,8 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
 
   const describe = (s: SeatModel) => {
     const c = model.courseInfo[s.course];
-    return `${s.label}, ${c?.code ?? ''} ${c?.title ?? ''}, ${s.name}, ${s.reg}${s.me ? ', you' : ''}${s.mySection ? ', your section' : ''}`;
+    const role = s.special ? `, ${roleText(specialById(s.special))}` : '';
+    return `${s.label}, ${c?.code ?? ''} ${c?.title ?? ''}, ${s.name}, ${s.reg}${s.me ? ', you' : ''}${s.mySection ? ', your section' : ''}${role}`;
   };
   const firstFocus = me && me.row ? me : grid[0];
   const changeBy = (v: ColourBy) => {
@@ -305,6 +313,7 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
       'data-me': s.me,
       'data-dim': spot !== null && keyOf(s) !== spot,
       'data-found': found?.id === s.id,
+      'data-fx': s.special ?? undefined,
       'data-seat': '',
       'aria-pressed': open?.id === s.id,
       'aria-label': describe(s),
@@ -314,13 +323,15 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
       },
     };
   };
+  /** Effects fade with the other seats while a course is spotlighted or a search found someone else. */
+  const fxDim = (s: SeatModel) => (spot !== null && keyOf(s) !== spot) || (found !== null && found.id !== s.id && !s.me);
   const tag = (s: SeatModel) => (s.mySection && mine ? <span aria-hidden className="seat-tag">{mine.tag}</span> : null);
 
   const listSeat = (s: SeatModel) => {
     const c = model.courseInfo[s.course];
     return (
       <li key={s.id}>
-        <button type="button" {...seatProps(s)} className={`flex w-full items-center gap-3 rounded-xl border border-line bg-surface p-3 text-left transition hover:border-brand data-[found=true]:border-success data-[found=true]:ring-2 data-[found=true]:ring-success ${spot !== null && keyOf(s) !== spot ? 'opacity-30' : ''}`}>
+        <button type="button" {...seatProps(s)} className={`fx-listed flex w-full items-center gap-3 rounded-xl border border-line bg-surface p-3 text-left transition hover:border-brand data-[found=true]:border-success data-[found=true]:ring-2 data-[found=true]:ring-success ${spot !== null && keyOf(s) !== spot ? 'opacity-30' : ''}`}>
           <span className="mini-seat" data-tex={byKey.get(keyOf(s))?.tex ?? 0} data-me={s.me} style={hueStyle(byKey.get(keyOf(s))?.hue ?? 0)}>
             {tag(s)}
           </span>
@@ -350,6 +361,7 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
       data-small={seatPx < SMALL_SEAT}
       data-axes={fit.bothAxes ? 2 : 1}
       data-finding={found !== null}
+      data-fx={hasFx}
       {...(spot !== null ? { 'data-spot': spot } : {})}
     >
       {aside && <div className="lg:hidden">{aside}</div>}
@@ -444,11 +456,13 @@ export function RoomGrid({ model: official, roomName, aside }: { model: RoomMode
                       if (!s) return <span key={col} role="gridcell" aria-label="Empty" className="seat-gap" />;
                       return (
                         <span key={col} role="gridcell" className="relative">
+                          {s.special && <SeatFx id={s.special} layer="back" dim={fxDim(s)} />}
                           {s.me && <span className="seat-pin">YOU</span>}
                           <button type="button" className="seat block" data-r={r + 1} data-c={col} tabIndex={s === firstFocus ? 0 : -1} title={`${s.label} · ${model.courseInfo[s.course]?.code ?? ''}`} {...seatProps(s)}>
                             {s.me && <span className="seat-ring" />}
                             {tag(s)}
                           </button>
+                          {s.special && <SeatFx id={s.special} layer="front" dim={fxDim(s)} />}
                         </span>
                       );
                     })}

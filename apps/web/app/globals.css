@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './special.css';
 
 @theme inline {
   --color-bg: var(--bg);

@@ -725,6 +725,16 @@ Sizing: seats are 28 px squares with 4 px gaps on desktop and shrink to a minimu
 
 A bordered button with a star icon, "Star", and the count from `/api/github` in mono. It links to the repo. When the count is unavailable, show only "Star". It sits in the header on every page except admin.
 
+### Special seats
+
+A short list in `apps/web/src/ui/special-people.ts` names the owner, the A/B testers and the people who starred the repo (roll number, name, roles, rank). It is the only place they are named. Rank, highest first: owner (118), 077, then 073, 092, 127, then 085.
+
+- **Room view.** When a seat in the room belongs to someone on the list, the page shows a banner under the back button ("Owner, A/B testers and stargazers in this room"), one row per person, highest rank first, each with their roll number, name and roles. Rows slide in from alternating sides; the owner's is larger and enters last, with a band of light across it. The page itself takes the highest-ranked person's colour (background tint, a faint tint on cards, and a pattern drawn behind the content). On the map each of their seats gets a ring and glow on the cushion, a back layer under the seats and a front layer over them, drawn in SVG and moved by CSS: 118 a sunburst with turning rings, a crowned crest made of the app's mark and a comet; 077 flames, a marching rim, embers, a spinning spark and a comet running the other way; 073 a radar sweep, rings and corner brackets; 092 a hexagon with pulses running round it; 127 a rose of eight petals and sparkles; 085 a drawn constellation, a star and a shooting star. The comets (118 and 077) travel along closed cubic Bezier curves. The map leaves room for the effects at its edges, so a room with any of them fits slightly smaller seats.
+- **Papers page.** `/r/<number>` for someone on the list shows the same banner (their own row) and page colour.
+- **Home.** "Made and tested by" lists the owner, the A/B testers and the stargazers with a small animated picture of each.
+- **Colour.** The effects use fixed per-person tokens, `--fx-<id>-a/b/c(/d)` in `apps/web/app/special.css`, not theme tokens; components read `--fx-a`, `--fx-b`, `--fx-c` from `data-fx`. The page tint is kept light enough that text keeps 4.5:1 in both themes (muted text is a little darker on the tint in Sand).
+- **Accessibility.** The drawings are `aria-hidden`; a seat's label ends with the role ("owner, starred the repo") and the seat details show role chips. With `prefers-reduced-motion` nothing moves: the drawings stand still and a comet becomes one dot on its curve. The page tint needs `:has()`; without it the banner and seat effects still show and the page keeps its theme colour.
+
 ## 10. Build phases
 
 Build in ten phases, each ending in a working state you have checked by hand, and its own pull request. The order puts the read path in front of users before the scraper exists: a seed script loads the sample file, so the web app is usable from Phase 4.
@@ -888,3 +898,4 @@ Recorded while building; the behaviour below is what is implemented.
 - The scraper is deployed on Heroku (container stack, `heroku.yml`, Eco dyno, about $5/month) instead of Render's free tier, so the "hosting must stay free" decision no longer holds for the scraper. The Dockerfile is unchanged; `render.yaml` was removed.
 
 - Vercel Web Analytics (`@vercel/analytics`, `apps/web/src/ui/analytics.tsx`) counts page views. It sets no cookies and loads a small script after the page. Before each event is sent, `/r/<reg>` is rewritten to `/r/[reg]` and query strings (`?me=`) are dropped, so registration numbers never reach Vercel. The proxy skips `/_vercel/` so the script still loads while the site is decommissioned.
+- Special seats (section 9): names on the banner and the home page come from `special-people.ts`, not from the seating data, so they read as the owner wrote them. `rollOrderModel` keeps the `special` field, so the effects follow a seat in Roll order.
