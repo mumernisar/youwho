@@ -20,5 +20,5 @@ export function proxy(req: NextRequest) {
 // Everything except build assets, Vercel's analytics script, icons, the manifest and the service worker
 // (so its kill switch still reaches phones). The notice's image is served from /_next.
 export const config = {
-  matcher: ['/((?!_next/|_vercel/|icon.svg|favicon.ico|apple-icon.png|icons/|manifest.webmanifest|sw.js).*)'],
+  matcher: ['/((?!_next/|_vercel/|icon.svg|favicon.ico|apple-icon.png|apple-touch-icon|icons/|manifest.webmanifest|sw.js).*)'],
 };
