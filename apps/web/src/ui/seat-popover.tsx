@@ -5,6 +5,7 @@ import type { LegendItem, SeatModel } from './room-model';
 import { relativeTo } from './room-model';
 import { hueStyle, initials } from './palette';
 import { Chair, Layers, Pin, X } from './icons';
+import { ROLE_LABEL, specialById } from './special-people';
 
 /**
  * Seat details in a popover pinned to the tapped seat. Non-modal, so tapping another seat moves it
@@ -58,6 +59,13 @@ export function SeatPopover({
                     <span className="font-mono text-xs text-muted">{seat.reg}</span>
                     {seat.me && <span className="you-chip">You</span>}
                   </p>
+                  {seat.special && (
+                    <p data-fx={seat.special} className="mt-1.5 flex flex-wrap gap-1.5">
+                      {specialById(seat.special).roles.map((r) => (
+                        <span key={r} className="fx-role" data-role={r}>{ROLE_LABEL[r]}</span>
+                      ))}
+                    </p>
+                  )}
                 </div>
                 <Popover.Close className="btn btn-quiet btn-icon -mt-1.5 -mr-2 h-9 min-h-9 w-9" aria-label="Close">
                   <X className="h-4 w-4" />

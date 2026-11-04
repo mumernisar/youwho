@@ -11,6 +11,7 @@ import { hueStyle } from '@/ui/palette';
 import { RoomGrid } from '@/ui/room-grid';
 import { buildRoomModel } from '@/ui/room-model';
 import { SourceNotice } from '@/ui/source-notice';
+import { SpecialStage } from '@/ui/special-banner';
 import { fmtDateLong, fmtRange } from '@/ui/format';
 
 export const dynamic = 'force-dynamic';
@@ -67,6 +68,7 @@ export default async function Room({
   return (
     <article>
       <PageNav back={back} crumbs={crumbs} />
+      <SpecialStage people={model.specials} where="room" />
 
       <header className="mt-2">
         <p className="eyebrow flex items-center gap-2"><Door className="h-4 w-4" />Room {data.room} · {data.dataset.label}</p>

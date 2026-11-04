@@ -7,6 +7,7 @@ import { DeptBadge } from '@/ui/dept-badge';
 import { ErrorState } from '@/ui/error-state';
 import { ArrowRight, Calendar, Chair, ThumbsUp, Users } from '@/ui/icons';
 import { RollForm } from '@/ui/roll-form';
+import { SpecialCredits } from '@/ui/special-credits';
 import { count, fmtUpdated } from '@/ui/format';
 
 export const dynamic = 'force-dynamic';
@@ -47,7 +48,9 @@ export default async function Home() {
         </div>
       </section>
 
-      <section aria-label="How it works" className="-mt-8 grid gap-3 sm:grid-cols-3">
+      <SpecialCredits repoUrl={s.github.url} />
+
+      <section aria-label="How it works" className="mt-14 grid gap-3 sm:grid-cols-3">
         {STEPS.map(({ icon: Icon, title, text }) => (
           <div key={title} className="card flex items-start gap-3 p-4">
             <span className="grid h-10 w-10 flex-none place-items-center rounded-xl bg-brand-soft text-brand">

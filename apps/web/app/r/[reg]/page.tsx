@@ -10,6 +10,8 @@ import { InstallButton } from '@/ui/install-button';
 import { PageNav } from '@/ui/page-nav';
 import { PaperList, StudentHeader } from '@/ui/paper-list';
 import { SaveGate } from '@/ui/save-gate';
+import { SpecialStage } from '@/ui/special-banner';
+import { specialOf } from '@/ui/special-people';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Your papers', robots: { index: false } };
@@ -30,6 +32,7 @@ export default async function Papers({ params }: { params: Promise<{ reg: string
     );
   }
   const view = res.data;
+  const special = specialOf(view.reg);
 
   return (
     <article>
@@ -38,6 +41,7 @@ export default async function Papers({ params }: { params: Promise<{ reg: string
         crumbs={[{ href: '/', label: 'Home' }, { label: view.reg }]}
         aside={install && <InstallButton />}
       />
+      {special && <SpecialStage people={[{ id: special.id }]} where="papers" />}
       <StudentHeader view={view}>
         <SaveGate reg={view.reg} />
       </StudentHeader>

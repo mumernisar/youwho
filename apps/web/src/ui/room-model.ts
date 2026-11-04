@@ -1,6 +1,7 @@
 import type { RoomViewData } from '@/server/schemas';
 import { seatText } from './format';
 import { assignHues } from './palette';
+import { byRank, specialOf, type SpecialId } from './special-people';
 
 export type ColourBy = 'course' | 'section';
 
@@ -27,6 +28,8 @@ export interface SeatModel {
   me: boolean;
   /** Same section as you (not counting your own seat). */
   mySection: boolean;
+  /** Owner, tester or stargazer: the seat gets its own effect. */
+  special: SpecialId | null;
 }
 
 export interface RoomModel {
@@ -39,6 +42,8 @@ export interface RoomModel {
   clash: SeatModel[];
   others: SeatModel[];
   me: SeatModel | null;
+  /** Owner, testers and stargazers seated here, highest rank first. */
+  specials: { id: SpecialId }[];
   /** Your section and the short tag drawn on its seats; null without a seat or a real section. */
   mySection: { label: string; tag: string; count: number } | null;
 }
@@ -105,6 +110,7 @@ export function buildRoomModel(data: RoomViewData, me: string | null): RoomModel
     clash: [],
     others: [],
     me: null,
+    specials: [],
     mySection:
       mySeat && !NO_SECTION.has(mySeat.section.trim())
         ? { label: mySeat.section, tag: sectionTag(mySeat.section), count: (sectionCount.get(mySeat.section) ?? 1) - 1 }
@@ -123,10 +129,13 @@ export function buildRoomModel(data: RoomViewData, me: string | null): RoomModel
       col: s.position.kind === 'grid' ? s.position.col : 0,
       me: s.reg === me,
       mySection: model.mySection !== null && s.reg !== me && s.section === mySeat!.section,
+      special: specialOf(s.reg)?.id ?? null,
     };
     if (seat.me) model.me = seat;
+    if (seat.special && !model.specials.some((p) => p.id === seat.special)) model.specials.push({ id: seat.special });
     ({ grid: model.grid, extra: model.extras, clash: model.clash, other: model.others })[s.position.kind].push(seat);
   });
+  model.specials = byRank(model.specials);
   const natural = (a: SeatModel, b: SeatModel) => a.label.localeCompare(b.label, 'en', { numeric: true });
   model.extras.sort(natural);
   model.clash.sort(natural);
