@@ -40,6 +40,7 @@ Other commands: `pnpm lint`, `pnpm typecheck`, `pnpm check:decoder` (run after a
 | `GITHUB_REPO`, `GITHUB_TOKEN` | web | `owner/name` for the Star button; token is optional |
 | `SITE_URL` | web, scraper | Public URL of the web app, used in email links |
 | `RESEND_API_KEY`, `OWNER_EMAIL`, `NOTIFY_FROM` | web, scraper | Without a key, owner events go to the log |
+| `ANALYTICS_ENABLED` | web | `true` turns on Vercel Web Analytics. Set it for Production only, so previews and local runs send nothing |
 | `PAGE_SOURCE`, `JOB_LIMIT_MS` | scraper | `fixture` or `playwright`; job limit defaults to 180000 |
 
 Generate secrets with `openssl rand -hex 32`.

@@ -19,7 +19,7 @@ This document is the build spec for Claude Code. Each section is self-contained 
 | Update a department | Re-scrape an existing department's URL. Goes through the same validation as a new one. |
 | Reports and confirmations | Every user-added department shows a warning with its source. Users can report it or confirm it is correct. |
 | Admin | The owner can delete a department and see reports. Email alerts through Resend. |
-| Themes and star | Three colour themes and a Star on GitHub button with a live count. |
+| Themes and star | Two colour themes and a Star on GitHub button with a live count. |
 
 ### Not in scope
 
@@ -664,13 +664,12 @@ youwho is a small, quiet tool with one interesting screen: the room. Everything 
 
 ### Type and themes
 
-IBM Plex Sans for text and IBM Plex Mono for data, both via `next/font` with system fallbacks. Three themes, switched from the header and stored in a cookie so the server renders the right one with no flash:
+IBM Plex Sans for text and IBM Plex Mono for data, both via `next/font` with system fallbacks. Two themes, switched from the header and stored in a cookie so the server renders the right one with no flash:
 
 | Theme | Background | Text | Accent (your seat) |
 | --- | --- | --- | --- |
 | Sand (default) | warm off-white | dark brown ink | amber |
-| Day (light) | cool grey | navy ink | amber |
-| Dusk (dark) | deep navy | off-white | amber |
+| Dusk (dark) | warm charcoal | warm off-white | amber |
 
 All colours are CSS variables on `:root[data-theme=…]`; components never hard-code colours. Visitors without a theme cookie get Sand.
 
@@ -718,7 +717,7 @@ Sizing: seats are 28 px squares with 4 px gaps on desktop and shrink to a minimu
 ### Accessibility
 
 - The grid is a `role="grid"`; each seat is a button with a label like "Row 3, seat 5, CSC301 Design and Analysis of Algorithms, Ali Raza, FA23-BSE-001". Arrow keys move between seats; Enter opens details; Escape closes them.
-- Text contrast meets WCAG AA in all three themes; seat fills meet 3:1 against the background.
+- Text contrast meets WCAG AA in both themes; seat fills meet 3:1 against the background.
 - Every interactive target is at least 24 by 24 px, and 44 px for buttons outside the grid.
 - Respect `prefers-reduced-motion` and `prefers-color-scheme`.
 
@@ -761,6 +760,8 @@ Build in ten phases, each ending in a working state you have checked by hand, an
 10. **Phase 9 — Polish and launch**
     - Three themes without flash, Star button, reduced motion, empty and offline states, metadata and favicon, README with setup and deploy steps.
     - Check by hand: Lighthouse on the home page scores at least 95 for performance and accessibility on mobile; switching themes never flashes; production is deployed on Vercel and Render.
+11. **Phase 10 — Home screen app and saved papers**
+    - Working spec in `docs/phase-10-offline.md`. That file is temporary: when the phase is done, fold its lasting parts into this spec, then delete the file and this pointer.
 
 ## 11. Verification
 
@@ -873,7 +874,7 @@ Recorded while building; the behaviour below is what is implemented.
 - `seats` has an extra `end_time` column and `room` stores the room name, not an index. The slot key includes the end time (`2026-11-03T08:30-09:50`), because papers that start together but end at different times (80 and 90 minutes) are different sessions; a room view shows only its own slot. Section 4's `SlotKey` example and section 8's `slotKey` path are updated to match.
 - `DATA_REVISION` in `packages/core` is mixed into `data_hash`; bump it when decoded output changes shape so existing datasets re-save on their next refresh.
 - New optional env variable `SITE_URL` (links in owner emails). Scraper-only dev variables: `FIXTURE_DIR`, `FIXTURE_DELAY_MS`, `DEV_ALLOW_LOCALHOST`.
-- Themes use a plain cookie and CSS variables instead of `next-themes`. After a design review the themes are **Day** (default: navy masthead, cool grey canvas, white cards, blue for actions), **Dusk** (deep navy dark theme, the default under a dark system setting) and **Sand** (warm light). Old cookie values map to the nearest one. Type is Inter for text and IBM Plex Mono for data.
+- Themes use a plain cookie and CSS variables instead of `next-themes`. The themes are **Sand** (default, warm light: dark brown masthead, terracotta for actions) and **Dusk** (warm charcoal dark theme with a near-black masthead and a lighter terracotta for actions). An earlier blue **Day** theme was removed; a `day` cookie (and older `paper`) now maps to Sand, `chalkboard` and `night` to Dusk. Type is Inter for text and IBM Plex Mono for data.
 - UI redesign: seats are drawn as chairs seen from above (cushion, armrests, backrest at the back edge), sized to fit the card (20–44 px, with zoom from 75% to 185% and a "Find me" button); the front board spans exactly the seat block; the room view has a "Your seat" card and a legend that lists course names (not only codes) and can colour seats by course or by section. Seat details show where that person sits relative to you. Amber is reserved for "you"; courses, sections and exam days take hues from one OKLCH palette with shared lightness and chroma per theme, assigned largest group first so the biggest groups get the most distinct colours. Papers are grouped by day under coloured date tiles; every paper is a card with a "View room map" affordance. Navigation uses a back button plus breadcrumb. The home heading reads "HEck or HAck?".
 - `@youwho/db` exposes the drivers as subpaths (`/client`, `/postgres`, `/neon`) so the scraper never loads the Neon driver.
 - `AppError` carries a brand checked by `isAppError`, because bundlers can load the errors package twice and break `instanceof`.

@@ -12,8 +12,9 @@ export function SourceLink({ url, className = '' }: { url: string; className?: s
   );
 }
 
-/** Full notice for the department page and room view; `compact` is the one-liner for roll results. */
-export function SourceNotice({ dataset, compact }: { dataset: DatasetSummary; compact?: boolean }) {
+/** Full notice for the department page and room view; `compact` is the one-liner for roll results.
+ *  `actions` is false on a copy saved on the phone, where Looks right and Report cannot reach the server. */
+export function SourceNotice({ dataset, compact, actions = true }: { dataset: DatasetSummary; compact?: boolean; actions?: boolean }) {
   if (compact) {
     return (
       <div className="flex flex-col gap-3 rounded-xl border border-line bg-surface-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -22,7 +23,7 @@ export function SourceNotice({ dataset, compact }: { dataset: DatasetSummary; co
           <span className="flex-none">Added by a user · Source</span>
           <SourceLink url={dataset.sourceUrl} className="min-w-0" />
         </p>
-        <SourceActions slug={dataset.slug} confirms={dataset.confirms} confirmed={dataset.viewerConfirmed} />
+        {actions && <SourceActions slug={dataset.slug} confirms={dataset.confirms} confirmed={dataset.viewerConfirmed} />}
       </div>
     );
   }

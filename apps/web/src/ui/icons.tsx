@@ -35,3 +35,13 @@ export const CornerTopRight = (p: P) => base(<path d="M6 6h12v12" />, p);
 export const CornerBottomRight = (p: P) => base(<path d="M18 6v12H6" />, p);
 export const Pin = (p: P) => base(<><path d="M12 21s-6.5-5.6-6.5-11A6.5 6.5 0 0 1 18.5 10c0 5.4-6.5 11-6.5 11Z" /><circle cx="12" cy="10" r="2.3" /></>, p);
 export const Building = (p: P) => base(<><rect x="4" y="3" width="16" height="18" rx="2" /><path d="M9 7h1m4 0h1M9 11h1m4 0h1M9 15h1m4 0h1M10 21v-3h4v3" /></>, p);
+/** A phone with an arrow coming down into it: keep this on your phone (install and save share it). */
+export const PhoneSave = (p: P) => base(<><rect x="6" y="2.5" width="12" height="19" rx="2.8" /><path d="M10.5 18.5h3M12 6.5v7m-3-3 3 3 3-3" /></>, p);
+/** The same phone with a tick: saved on this phone. */
+export const PhoneCheck = (p: P) => base(<><rect x="6" y="2.5" width="12" height="19" rx="2.8" /><path d="M10.5 18.5h3m-4-8.5 2 2 3.5-4" /></>, p);
+/** Safari's Share button: a box with an arrow leaving the top. */
+export const Share = (p: P) => base(<path d="M12 3v11m-4-7 4-4 4 4M8 10H6.5A1.5 1.5 0 0 0 5 11.5v8A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-8a1.5 1.5 0 0 0-1.5-1.5H16" />, p);
+/** Safari's Add to Home Screen item: a plus in a rounded square. */
+export const PlusSquare = (p: P) => base(<><rect x="4" y="4" width="16" height="16" rx="3.5" /><path d="M12 8.5v7M8.5 12h7" /></>, p);
+/** Android's browser menu (three dots). */
+export const MoreVertical = (p: P) => base(<><circle cx="12" cy="5.5" r="1.2" /><circle cx="12" cy="12" r="1.2" /><circle cx="12" cy="18.5" r="1.2" /></>, p);

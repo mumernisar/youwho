@@ -16,6 +16,11 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   // Plain Node scripts (development aids)
   { files: ['**/*.mjs'], languageOptions: { globals: { URL: 'readonly', console: 'readonly' } } },
+  // The web app's service worker: plain JavaScript in the worker scope
+  {
+    files: ['apps/web/public/sw.js'],
+    languageOptions: { sourceType: 'script', globals: { self: 'readonly', caches: 'readonly', fetch: 'readonly', URL: 'readonly' } },
+  },
   {
     rules: {
       'no-restricted-syntax': ['error', noThrowError],

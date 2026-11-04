@@ -1,4 +1,4 @@
-import type { ErrorCode } from '@youwho/errors';
+import type { ClientErrorCode } from '@/client/api-fetch';
 
 export type ErrorIcon = 'alert' | 'search' | 'lock' | 'clock' | 'offline';
 export type ErrorAction = 'retry' | 'edit-input' | 'go-home' | 'add-department' | 'none';
@@ -10,7 +10,7 @@ export interface ErrorPresentation {
 }
 
 /** Typed over every catalog code, so a new code fails the type check until it has copy. */
-export const ERROR_COPY: Record<ErrorCode | 'NETWORK_ERROR', ErrorPresentation> = {
+export const ERROR_COPY: Record<ClientErrorCode, ErrorPresentation> = {
   INVALID_INPUT: { icon: 'alert', heading: 'Check your input', action: 'edit-input' },
   INVALID_REG_NUMBER: { icon: 'alert', heading: 'Not a registration number', action: 'edit-input' },
   INVALID_SOURCE_URL: { icon: 'alert', heading: 'Not a Google Sites link', action: 'edit-input' },
@@ -37,4 +37,5 @@ export const ERROR_COPY: Record<ErrorCode | 'NETWORK_ERROR', ErrorPresentation> 
   SITE_DECOMMISSIONED: { icon: 'lock', heading: 'Site taken down', action: 'none' },
   INTERNAL: { icon: 'alert', heading: 'Something went wrong', action: 'retry' },
   NETWORK_ERROR: { icon: 'offline', heading: 'No connection', action: 'retry' },
+  DEVICE_STORAGE_FAILED: { icon: 'alert', heading: "Couldn't save", action: 'retry' },
 };

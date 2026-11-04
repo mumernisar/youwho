@@ -3,7 +3,8 @@ import type { Course, SeatPosition } from '@youwho/core';
 import type { PublicError } from '@youwho/errors';
 
 // ---- request schemas (shared with the client as types) ----
-export const lookupQuery = z.object({ reg: z.string().min(1).max(40) });
+// `refresh=1`: a saved copy on a phone catching up. Same answer, but not counted as a search.
+export const lookupQuery = z.object({ reg: z.string().min(1).max(40), refresh: z.literal('1').optional() });
 export const slugParam = z.object({ slug: z.string().min(1).max(100) });
 export const roomParams = z.object({
   slug: z.string().min(1).max(100),

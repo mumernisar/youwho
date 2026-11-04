@@ -1,0 +1,34 @@
+'use client';
+
+import { useEffect } from 'react';
+import { isStandalone } from '@/client/app-mode';
+import { captureInstallPrompt } from '@/client/install-prompt';
+import { clearOffline } from '@/client/saved';
+import { OFFLINE_ENABLED } from '../site-status';
+
+async function retire(): Promise<void> {
+  const regs = (await navigator.serviceWorker?.getRegistrations?.()) ?? [];
+  await Promise.all(regs.map((r) => r.unregister()));
+  await clearOffline();
+}
+
+/**
+ * Renders nothing. In a browser tab it keeps the install event for the install sheet and asks whether the
+ * app is installed. In the installed app it registers the service worker after load, so the worker
+ * never competes with the first render.
+ */
+export function AppShell() {
+  useEffect(() => {
+    if (!OFFLINE_ENABLED) {
+      void retire().catch(() => undefined);
+      return;
+    }
+    captureInstallPrompt();
+    if (!isStandalone() || !('serviceWorker' in navigator)) return;
+    // A failed registration only means no offline copy; the site works the same.
+    const register = () => void navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => undefined);
+    if (document.readyState === 'complete') register();
+    else window.addEventListener('load', register, { once: true });
+  }, []);
+  return null;
+}

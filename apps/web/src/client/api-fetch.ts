@@ -1,13 +1,16 @@
-import type { ApiResponse, ErrorCode } from '@youwho/errors';
+import type { ApiResponse, PublicError } from '@youwho/errors';
+
+/** Catalog codes plus the failures only the browser can have: no connection, and phone storage refusing a save. */
+export type ClientErrorCode = PublicError['code'];
 
 /** Rebuilt from the response envelope. Components read `code`, never `response.status`. */
 export class ClientError extends Error {
-  readonly code: ErrorCode | 'NETWORK_ERROR';
+  readonly code: ClientErrorCode;
   readonly retryable: boolean;
   readonly details: unknown;
   readonly requestId: string | undefined;
 
-  constructor(e: { code: ErrorCode | 'NETWORK_ERROR'; message: string; retryable: boolean; details?: unknown; requestId?: string }) {
+  constructor(e: { code: ClientErrorCode; message: string; retryable: boolean; details?: unknown; requestId?: string }) {
     super(e.message);
     this.name = 'ClientError';
     this.code = e.code;

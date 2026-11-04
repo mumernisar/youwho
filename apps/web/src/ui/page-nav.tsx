@@ -7,7 +7,7 @@ export interface Crumb {
 }
 
 /** Back button plus a breadcrumb trail. The trail hides on small screens; the button never does. */
-export function PageNav({ back, crumbs }: { back: { href: string; label: string }; crumbs: Crumb[] }) {
+export function PageNav({ back, crumbs, aside }: { back: { href: string; label: string }; crumbs: Crumb[]; aside?: React.ReactNode }) {
   return (
     <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-6 pb-2">
       <Link href={back.href} className="btn btn-secondary btn-sm pl-2">
@@ -26,6 +26,7 @@ export function PageNav({ back, crumbs }: { back: { href: string; label: string 
           </li>
         ))}
       </ol>
+      {aside && <div className="ml-auto">{aside}</div>}
     </nav>
   );
 }

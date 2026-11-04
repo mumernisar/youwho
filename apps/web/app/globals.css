@@ -31,72 +31,41 @@
  *   so no category shouts louder than another. Components set only --h.
  */
 
-/* Day — light. Navy masthead, cool grey canvas, white cards. */
-:root[data-theme='day'] {
-  color-scheme: light;
-  --bg: #eef2f8;
-  --surface: #ffffff;
-  --surface-2: #f6f8fc;
-  --ink: #0e1a2b;
-  --ink-2: #33435a;
-  --muted: #56667e;
-  --line: #dbe2ec;
-  --brand: #0a5ad4;
-  --brand-ink: #ffffff;
-  --brand-soft: #e7f0ff;
-  --accent: #ffb000;
-  --accent-ink: #1d1400;
-  --head-bg: #0b2a5c;
-  --head-ink: #ffffff;
-  --head-muted: #b8c7e3;
-  --danger: #c02828;
-  --success: #157a3a;
-  --success-ink: #ffffff;
-  --shadow: 0 1px 2px rgb(14 26 43 / 0.06), 0 4px 16px rgb(14 26 43 / 0.06);
-  --shadow-lg: 0 2px 6px rgb(14 26 43 / 0.08), 0 16px 40px rgb(14 26 43 / 0.12);
-  --floor: #f4f7fb;
-  --floor-dot: #d5dde9;
-  --hue-fill-l: 0.74;
-  --hue-fill-c: 0.12;
-  --hue-back-l: 0.58;
-  --hue-soft-l: 0.955;
-  --hue-soft-c: 0.03;
-  --hue-ink-l: 0.43;
-  --hue-ink-c: 0.13;
-}
-
-/* Dusk — dark. Deep navy, not black, so the seat colours keep their depth. */
+/*
+ * Dusk — dark. Warm charcoal rather than navy or black, so it reads as Sand at night and the seat
+ * colours keep their depth. Terracotta marks actions, as in Sand; amber stays "you".
+ */
 :root[data-theme='dusk'] {
   color-scheme: dark;
-  --bg: #0a101c;
-  --surface: #121a2b;
-  --surface-2: #172135;
-  --ink: #e9eefa;
-  --ink-2: #c3cee2;
-  --muted: #93a3bf;
-  --line: #26324a;
-  --brand: #5aa2ff;
-  --brand-ink: #04122a;
-  --brand-soft: #142a4d;
+  --bg: #141210;
+  --surface: #1d1a17;
+  --surface-2: #24211d;
+  --ink: #f2ece2;
+  --ink-2: #d2c9bb;
+  --muted: #a1978a;
+  --line: #322d27;
+  --brand: #ee8457;
+  --brand-ink: #1f0d04;
+  --brand-soft: #3a241a;
   --accent: #ffc233;
   --accent-ink: #1d1400;
-  --head-bg: #0d1526;
-  --head-ink: #e9eefa;
-  --head-muted: #93a3bf;
-  --danger: #ff7a7a;
-  --success: #4fd17f;
-  --success-ink: #03200d;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 16px rgb(0 0 0 / 0.25);
-  --shadow-lg: 0 2px 6px rgb(0 0 0 / 0.35), 0 16px 40px rgb(0 0 0 / 0.45);
-  --floor: #0e1626;
-  --floor-dot: #223049;
-  --hue-fill-l: 0.66;
-  --hue-fill-c: 0.13;
-  --hue-back-l: 0.5;
+  --head-bg: #0e0d0b;
+  --head-ink: #f2ece2;
+  --head-muted: #a89e90;
+  --danger: #ff8b7e;
+  --success: #74d08e;
+  --success-ink: #06200f;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.35), 0 4px 16px rgb(0 0 0 / 0.28);
+  --shadow-lg: 0 2px 6px rgb(0 0 0 / 0.4), 0 16px 40px rgb(0 0 0 / 0.5);
+  --floor: #181613;
+  --floor-dot: #2f2a24;
+  --hue-fill-l: 0.68;
+  --hue-fill-c: 0.12;
+  --hue-back-l: 0.52;
   --hue-soft-l: 0.27;
-  --hue-soft-c: 0.05;
-  --hue-ink-l: 0.84;
-  --hue-ink-c: 0.1;
+  --hue-soft-c: 0.04;
+  --hue-ink-l: 0.85;
+  --hue-ink-c: 0.09;
 }
 
 /* Sand — the default. Warm, editorial light theme. */
@@ -936,4 +905,388 @@ html {
 .bleed {
   margin-inline: calc(50% - 50vw);
   padding-inline: calc(50vw - 50%);
+}
+
+/* ======================= install sheet ======================= */
+
+.install-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+.install-app-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ink-2);
+}
+.install-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+.install-num {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--brand-ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+/* Drawn like the control the student will tap on their own screen. */
+.install-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-inline: 0.15rem;
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--brand);
+  font-weight: 600;
+  vertical-align: baseline;
+  box-shadow: 0 1px 0 var(--line);
+}
+.sheet {
+  animation: sheet-up 280ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.sheet-overlay {
+  animation: sheet-fade 200ms ease-out;
+}
+@media (min-width: 40rem) {
+  .sheet {
+    animation: sheet-pop 220ms cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes sheet-pop {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+@keyframes sheet-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ======================= saved on this device ======================= */
+
+.save-wrap {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  animation: save-in 260ms ease-out;
+}
+.save-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 0.85rem;
+}
+/* On phones the Save button takes its own full-width row under the text. */
+.save-strip-offer .save-btn {
+  width: 100%;
+}
+@media (min-width: 40rem) {
+  .save-strip-offer .save-btn {
+    width: auto;
+  }
+}
+.save-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.save-icon-done {
+  background: color-mix(in oklab, var(--success) 14%, var(--surface));
+  color: var(--success);
+  animation: save-pop 360ms cubic-bezier(0.3, 1.6, 0.6, 1);
+}
+@keyframes save-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@keyframes save-pop {
+  from {
+    transform: scale(0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .sheet-overlay,
+  .save-wrap,
+  .save-icon-done {
+    animation: none;
+  }
+}
+
+/* Room and seat on a paper: what a student looks for first, so larger on phones; chip size from sm up. */
+.place-chip {
+  min-height: 2.25rem;
+  padding: 0 0.8rem;
+  gap: 0.45rem;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--surface);
+  border-color: color-mix(in oklab, var(--ink) 18%, var(--line));
+}
+.place-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  color: var(--brand);
+}
+@media (min-width: 40rem) {
+  .place-chip {
+    min-height: 1.6rem;
+    padding: 0 0.6rem;
+    gap: 0.35rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    background: var(--surface-2);
+    border-color: var(--line);
+  }
+  .place-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    color: currentColor;
+  }
+}
+/* ======================= install button ======================= */
+
+/*
+ * Pointed out once, the way YouTube points at its Subscribe button: everything stays inside the
+ * button's own shape. A thin gradient light travels along the border itself (it replaces the 1 px
+ * border while it passes, never sits outside it), and a faint wash of the same colours crosses the
+ * face. Both fade and it is a plain button again. Nothing glows beyond the edge.
+ * The ring is a conic gradient turned by --sweep and masked to the border; the wash is a wide
+ * linear gradient slid across by background-position, rounded to the inner edge so no overflow is
+ * needed. Colours share one OKLCH lightness and chroma per theme, a step quieter on the light theme.
+ * Without @property the ring fades in and out in place.
+ */
+@property --sweep {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+.install-btn {
+  --ring-l: 0.64;
+  --ring-c: 0.16;
+  --wash: 0.1;
+  position: relative;
+}
+:root[data-theme='dusk'] .install-btn {
+  --ring-l: 0.76;
+  --ring-c: 0.14;
+  --wash: 0.16;
+}
+/* On the dark face the wash is added as light, so it reads as a sheen rather than tinting the button muddy. */
+:root[data-theme='dusk'] .install-btn::after {
+  mix-blend-mode: screen;
+}
+.install-btn-label {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: inherit;
+}
+/* The light on the border: sits exactly on the border box, 1.5 px wide. */
+.install-btn::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: 2;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--sweep),
+    transparent 0 22%,
+    oklch(var(--ring-l) var(--ring-c) 300 / 0) 22%,
+    oklch(var(--ring-l) var(--ring-c) 300) 42%,
+    oklch(var(--ring-l) var(--ring-c) 255) 56%,
+    oklch(var(--ring-l) var(--ring-c) 205) 68%,
+    oklch(var(--ring-l) var(--ring-c) 150) 78%,
+    oklch(var(--ring-l) var(--ring-c) 85) 87%,
+    oklch(var(--ring-l) var(--ring-c) 40) 94%,
+    oklch(calc(var(--ring-l) + 0.06) var(--ring-c) 355) 99.5%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  pointer-events: none;
+  animation: install-sweep 2s cubic-bezier(0.5, 0, 0.2, 1) 0.7s 1 both;
+}
+/* The wash across the face, inside the border. */
+.install-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 9px;
+  background: linear-gradient(
+      100deg,
+      transparent 38%,
+      oklch(var(--ring-l) var(--ring-c) 300) 45%,
+      oklch(var(--ring-l) var(--ring-c) 220) 50%,
+      oklch(var(--ring-l) var(--ring-c) 120) 55%,
+      oklch(var(--ring-l) var(--ring-c) 20) 60%,
+      transparent 67%
+    )
+    no-repeat;
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  opacity: 0;
+  pointer-events: none;
+  animation: install-wash 1.6s cubic-bezier(0.4, 0, 0.2, 1) 1s 1 both;
+}
+.install-btn-icon {
+  animation: install-nudge 520ms ease-in-out 2.5s 1;
+}
+@keyframes install-sweep {
+  0% {
+    --sweep: 0deg;
+    opacity: 0;
+  }
+  12%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    --sweep: 360deg;
+    opacity: 0;
+  }
+}
+@keyframes install-wash {
+  0% {
+    background-position: 100% 0;
+    opacity: 0;
+  }
+  20%,
+  70% {
+    opacity: var(--wash);
+  }
+  100% {
+    background-position: 0% 0;
+    opacity: 0;
+  }
+}
+@keyframes install-nudge {
+  50% {
+    transform: translateY(2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .install-btn::before,
+  .install-btn::after,
+  .install-btn-icon {
+    animation: none;
+  }
+}
+/* Pinned copy: once Install app scrolls away, its icon stays at the top right, round and quiet. */
+.install-fab {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+  right: max(1rem, env(safe-area-inset-right, 0px));
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transform: translateY(-10px) scale(0.85);
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    transform 260ms cubic-bezier(0.3, 1.4, 0.6, 1),
+    color 140ms ease;
+}
+/* Its border is the Install app light at rest: one smooth loop of the same OKLCH hues, 1.5 px. */
+.install-fab {
+  --ring-l: 0.66;
+  --ring-c: 0.13;
+}
+:root[data-theme='dusk'] .install-fab {
+  --ring-l: 0.74;
+  --ring-c: 0.12;
+}
+.install-fab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1.5px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from 200deg,
+    oklch(var(--ring-l) var(--ring-c) 300),
+    oklch(var(--ring-l) var(--ring-c) 255),
+    oklch(var(--ring-l) var(--ring-c) 205),
+    oklch(var(--ring-l) var(--ring-c) 150),
+    oklch(var(--ring-l) var(--ring-c) 85),
+    oklch(var(--ring-l) var(--ring-c) 40),
+    oklch(var(--ring-l) var(--ring-c) 355),
+    oklch(var(--ring-l) var(--ring-c) 300)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.install-fab[data-shown='true'] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.install-fab:hover {
+  color: var(--brand);
+}
+.install-fab:active {
+  transform: scale(0.94);
+}
+@media (prefers-reduced-motion: reduce) {
+  .install-fab {
+    transition: opacity 120ms ease;
+    transform: none;
+  }
+}
+/* Nothing to install inside the app. */
+@media (display-mode: standalone) {
+  .install-btn,
+  .install-fab {
+    display: none;
+  }
 }
