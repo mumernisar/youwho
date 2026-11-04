@@ -16,8 +16,8 @@ const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], 
 export const metadata: Metadata = {
   title: { default: 'Youuwho - Trick or treat', template: '%s · Youuwho' },
   description: 'See who is sitting around you in the exam room.',
-  // Home-screen app on iPhone: full screen, named youwho under the icon.
-  appleWebApp: { capable: true, title: 'youwho', statusBarStyle: 'default' },
+  // Home-screen app on iPhone: full screen, named Youwho under the icon.
+  appleWebApp: { capable: true, title: 'Youwho', statusBarStyle: 'default' },
 };
 
 // Pinch-zoom stays enabled.
@@ -30,15 +30,16 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const theme = normalizeTheme((await cookies()).get('yw_theme')?.value);
+  const { env, github } = getServices();
   return (
     <html lang="en" className={`${inter.variable} ${mono.variable}`} data-theme={theme}>
       <body className="font-sans text-ink antialiased">
         <AddDepartmentProvider>
           <OfflineBar />
-          <Header theme={theme} repoUrl={getServices().github.url} />
+          <Header theme={theme} repoUrl={github.url} />
           <main className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6">{children}</main>
         </AddDepartmentProvider>
-        <Analytics />
+        {env.ANALYTICS_ENABLED && <Analytics />}
         <AppShell />
       </body>
     </html>

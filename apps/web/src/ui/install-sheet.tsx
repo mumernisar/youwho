@@ -38,12 +38,18 @@ export function InstallSheet({ open, onOpenChange, onInstalled }: { open: boolea
   const { canPrompt } = useInstallPrompt();
   const [os] = useState(platform);
   const [busy, setBusy] = useState(false);
+  // The browser's dialog failed once: show the manual steps for the rest of this sheet.
+  const [manual, setManual] = useState(false);
   const steps = os === 'ios' ? IOS : ANDROID;
 
   async function install() {
     setBusy(true);
     const outcome = await promptInstall();
     setBusy(false);
+    if (outcome === 'unavailable') {
+      setManual(true);
+      return;
+    }
     onOpenChange(false);
     if (outcome === 'accepted') onInstalled();
   }
@@ -59,7 +65,7 @@ export function InstallSheet({ open, onOpenChange, onInstalled }: { open: boolea
           <div className="flex flex-col items-center text-center">
             <span className="install-app">
               <img src="/icons/icon-192.png" alt="" width={64} height={64} className="rounded-[18px] shadow-lg" />
-              <span className="install-app-label">youwho</span>
+              <span className="install-app-label">Youwho</span>
             </span>
             <Dialog.Title className="mt-4 text-xl font-bold tracking-tight">Add youwho to your Home Screen</Dialog.Title>
             <Dialog.Description className="mt-1.5 max-w-xs text-sm text-muted">
@@ -67,7 +73,7 @@ export function InstallSheet({ open, onOpenChange, onInstalled }: { open: boolea
             </Dialog.Description>
           </div>
 
-          {canPrompt ? (
+          {canPrompt && !manual ? (
             <button type="button" onClick={install} disabled={busy} className="btn btn-primary mt-6 h-12 w-full text-base">
               Install youwho
             </button>
@@ -89,7 +95,7 @@ export function InstallSheet({ open, onOpenChange, onInstalled }: { open: boolea
             <PhoneSave className="mt-0.5 h-4 w-4 flex-none text-brand" />
             Then open youwho from your Home Screen and tap Save to this device on your papers.
           </p>
-          {!canPrompt && (
+          {(!canPrompt || manual) && (
             <Dialog.Close className="btn btn-secondary mt-4 h-12 w-full text-base">Got it</Dialog.Close>
           )}
         </Dialog.Content>

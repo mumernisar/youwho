@@ -32,6 +32,8 @@ export const webEnvSchema = z
     HASH_SALT: secret,
     GITHUB_REPO: z.string().regex(/^[\w.-]+\/[\w.-]+$/, 'must look like owner/name'),
     GITHUB_TOKEN: optionalString,
+    /** Vercel Web Analytics. Off unless set to true, so previews and local runs never send page views. */
+    ANALYTICS_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
     ...notifyShape,
   })
   .superRefine(requireNotifyPair);

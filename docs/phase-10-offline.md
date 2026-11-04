@@ -10,10 +10,10 @@ Nov 4, 2026 · @Umer
 ## 1. What this phase adds
 
 1. **Add to home screen.** A manifest and icons, so youwho can be added to the home screen on Android and iPhone and opens full screen, like an app.
-2. **Install ribbon.** On phones, a ribbon drops from under the masthead on the papers page. Tapping it opens a sheet that installs the app (Android) or shows how (iPhone).
+2. **Install app button.** On phones, a small button beside **< Home** on the papers page, pointed out once by a light that runs around its border. It opens a sheet that installs the app (Android) or shows how (iPhone).
 3. **Saved papers.** Inside the installed app, the papers page has **Save to this device**. A saved number opens from the phone straight away and quietly updates itself from the server.
 
-**People who never install the app see no change**, apart from the ribbon on their phone's papers page. Browser tabs get no service worker, no saving code and no extra request.
+**People who never install the app see no change**, apart from the Install app button on their phone's papers page. Browser tabs get no service worker, no saving code and no extra request.
 
 No new service, paid plan, runtime dependency or endpoint. The scraper is not touched.
 
@@ -40,17 +40,17 @@ No new service, paid plan, runtime dependency or endpoint. The scraper is not to
 
 | File | Content |
 | --- | --- |
-| `app/manifest.ts` | `name`/`short_name` youwho, `id`/`start_url`/`scope` `/`, `display: standalone`, `orientation: portrait`, `theme_color` `#2b2016` (Sand masthead, same as `viewport.themeColor`), `background_color` `#f4eee3` (Sand page) |
+| `app/manifest.ts` | `name`/`short_name` **Youwho** (capitalised under the icon; `appleWebApp.title` matches), `id`/`start_url`/`scope` `/`, `display: standalone`, `orientation: portrait`, `theme_color` `#2b2016` (Sand masthead, same as `viewport.themeColor`), `background_color` `#f4eee3` (Sand page) |
 | `app/apple-icon.png` | 180 × 180, iPhone home-screen icon |
 | `public/icons/icon-192.png`, `icon-512.png` | `purpose: any`, rounded tile |
 | `public/icons/maskable-512.png` | `purpose: maskable`, mark inside the safe zone |
 
 - The icon is the header's mark redrawn as nine chairs, as in the seat map, with the middle one amber ("you"), on the Sand masthead colour. The PNGs were rendered once with the Playwright already in the repo and committed; no image library was added.
-- Root metadata: `appleWebApp: { capable: true, title: 'youwho', statusBarStyle: 'default' }`.
+- Root metadata: `appleWebApp: { capable: true, title: 'Youwho', statusBarStyle: 'default' }`.
 - A manifest cannot read CSS variables, so its two hex colours are the one exception to "colours only from theme variables"; a comment in `manifest.ts` says so.
 - `proxy.ts` excludes `apple-icon.png`, `icons/`, `manifest.webmanifest` and `sw.js`, so they are served (and the kill switch still reaches phones) while the site is decommissioned.
 
-## 4. Install ribbon
+## 4. Install app button
 
 ### Why our own
 
@@ -60,34 +60,36 @@ No new service, paid plan, runtime dependency or endpoint. The scraper is not to
 | Samsung Internet, desktop Chrome and Edge | An icon in the address bar only |
 | Safari and every browser on iPhone | Nothing. The student has to know Share, then Add to Home Screen |
 
-A toast would cover content on a small screen, so the suggestion is a ribbon in the page's flow.
+A toast or banner would cover content on a small screen, or be one more thing to close. The offer is therefore a small, permanent button in the papers page's navigation row. It is drawn attention to once, then left alone.
 
 ### Look
 
-- A band in the masthead colour, with a slight top-light gradient and a fine inner edge. It has notched tails behind both ends, sitting a little lower, with darker folds, like a game's reward ribbon. In Dusk the band is lifted a step lighter so the tails read against the dark page.
-- Left: an amber disc with the **PhoneSave** icon (a phone with an arrow coming down into it). The same icon is used on Android and iPhone, in the sheet and on the save control, so "keep it on your phone" always looks the same.
-- Text: **Add to Home Screen** over "Your papers, even offline", then a chevron. A divider, then a × button.
-- Motion: drops out from behind the masthead with a slight overshoot (640 ms), then one light sweep across the band and two small nudges of the arrow. Closing lifts it back up, then the slot folds away. All motion is off under `prefers-reduced-motion`.
-- Focus rings inside the ribbon are amber, because the brand blue disappears on navy.
+- A plain secondary button, **Install app**, with the **PhoneSave** icon (a phone with an arrow coming down into it). It sits at the right end of the row with **< Home** (`PageNav`'s `aside`). The same icon is used on Android and iPhone, in the sheet and on the save control, so "keep it on your phone" always looks the same.
+- **Pointed out once**, as YouTube points at its Subscribe button, and kept inside the button's own shape; nothing glows beyond its edge.
+  - 0.7 s after the page loads, a thin (1.5 px) rainbow light travels one lap along the border itself in 2 s, replacing the 1 px border as it passes. It has a bright pink head and a tail fading through amber, green and blue to violet.
+  - Meanwhile a narrow, faint band of the same colours shimmers once across the face. Then both fade, the arrow in the icon dips once, and it is an ordinary button until the next page load.
+  - The ring is a conic gradient turned by `--sweep` (`@property`) and masked to the border box. The shimmer is a wide linear gradient slid across by `background-position`, rounded to the inner edge, so the button needs no `overflow: hidden`.
+  - Colours share one OKLCH lightness and chroma per theme: a step quieter on Sand, a step lighter on Dusk. On Dusk the shimmer is blended as light (`screen`) so it never tints the dark face muddy. Both themes were checked frame by frame.
+  - Browsers without `@property` show the ring fading in and out in place.
+- **Pinned when scrolled away.** The nav row scrolls with the page, so plain `position: sticky` cannot hold the button. Instead, an `IntersectionObserver` watches it, and once it has left through the top, an icon-only copy eases in at the top right.
+  - It is a 44 px round button with the PhoneSave icon, on the surface colour with the large shadow, and respects the safe areas. Its border is a thin (1.5 px) static rainbow ring in the same OKLCH hues as the Install app light, so the two read as one control. `aria-label` is "Install app".
+  - It opens the same sheet, and it goes away when the original scrolls back into view.
+  - While hidden it is `aria-hidden` and out of the tab order.
+- No motion under `prefers-reduced-motion`.
 
 ### Behaviour
 
-- **Server-decided** (`src/server/install.ts`). It is rendered only on `/r/[reg]` when all of these hold:
-  - `OFFLINE_ENABLED` is on;
-  - the user agent is a phone (iPhone, iPad or Android);
-  - there is no `yw_ribbon` cookie (closed) and no `yw_app` cookie (installed).
-
-  Because the server renders it, its space is in the first paint and only a transform animates, so nothing on the page jumps (no layout shift).
-- CSS hides it under `@media (display-mode: standalone)`, so it never shows inside the app.
-- **×** sets `yw_ribbon=closed` for 90 days, about Chrome's own back-off.
-- Tapping the band opens the install sheet. Its code loads when the ribbon is first touched or hovered, not with the page.
-- On Chromium, `beforeinstallprompt` is captured with `preventDefault()` (`src/client/install-prompt.ts`, started by `AppShell` in the layout), so the browser's own bar never appears next to ours. On `appinstalled` the ribbon closes for good.
+- **Server-decided** (`src/server/install.ts`): rendered on `/r/[reg]` when `OFFLINE_ENABLED` is on and the user agent is a phone (iPhone, iPad or Android). So it is in the first paint and nothing jumps.
+- Hidden inside the app by CSS (`@media (display-mode: standalone)`).
+- Whether the app is installed is not decided by a cookie, because a cookie cannot see an uninstall. `navigator.getInstalledRelatedApps()` asks the browser on every visit (Chromium on Android; the manifest lists itself in `related_applications`), and the button hides when the answer is yes or after `appinstalled`. After an uninstall the answer is no again and the button returns.
+- Tapping it opens the install sheet. The sheet's code loads when the button is first touched or hovered, not with the page.
+- On Chromium, `beforeinstallprompt` is captured with `preventDefault()` (`src/client/install-prompt.ts`, started by `AppShell` in the layout), so the browser's own bar never appears; the button is the one offer.
 
 ### Install sheet (`src/ui/install-sheet.tsx`)
 
 A Radix Dialog: bottom sheet on phones with a grab handle and safe-area padding, centred card from 40rem up. Esc, the overlay and × all close it.
 
-- Top: the real app icon with "youwho" under it, as it will look on the home screen. Title "Add youwho to your Home Screen"; line "It opens full screen, like an app. Save your papers in it and they open even without internet."
+- Top: the real app icon with "Youwho" under it, as it will look on the home screen. Title "Add youwho to your Home Screen"; line "It opens full screen, like an app. Save your papers in it and they open even without internet."
 - **Browser can install** (install event captured): one primary button, **Install youwho**, which opens the system dialog.
 - **iPhone**: three numbered steps, with each control drawn like the key the student will see:
   1. Tap [Share] ("At the bottom of Safari. On newer iPhones it is under •••.")
@@ -122,7 +124,7 @@ Cache Storage, so the page and the worker share it without IndexedDB.
 A client page with no server data, `noindex`. What it shows depends on the path it was opened at:
 
 - **`/r/{REG}`, saved:** the same `StudentHeader` and `PaperList` as the live page (moved into `src/ui/paper-list.tsx` so the two cannot drift). The header has the saved strip: "Saved on this device", "Last updated 3 Nov, 6:00 PM" and **Remove**. Looks right and Report are hidden; papers still link to their rooms.
-- **Anything else:** a card listing the saved numbers (initials, name, number, last updated). Offline its heading reads "You're offline" with "Search and room maps need a connection. Papers you saved still open."; online, "Saved on this device".
+- **Anything else:** a card with a **Try again** button (reload) while offline, which also reloads by itself on the `online` event, so the app never needs a restart to get back to search. Below it, a list of the saved numbers (initials, name, number, last updated). Offline its heading reads "You're offline" with "Search and room maps need a connection. Papers you saved still open."; online, "Saved on this device".
 
 ### Service worker (`public/sw.js`)
 
@@ -151,7 +153,7 @@ Hand-written, about 100 lines, no Workbox. Served with `Cache-Control: no-cache,
 
 ### Kill switch
 
-- `src/site-status.ts` has `OFFLINE_ENABLED`. When false, `AppShell` unregisters the worker and deletes every `yw-*` cache, and the ribbon and save control render nothing.
+- `src/site-status.ts` has `OFFLINE_ENABLED`. When false, `AppShell` unregisters the worker and deletes every `yw-*` cache, and the Install app button and save control render nothing.
 - `public/sw.js` has `RETIRED`. When true, the worker deletes its caches, unregisters and reloads its pages on activate.
 - Set both and deploy to turn the feature off on phones that already have it.
 
@@ -165,13 +167,31 @@ Hand-written, about 100 lines, no Workbox. Served with `Cache-Control: no-cache,
 
 | State | Strip |
 | --- | --- |
-| Not saved | PhoneSave tile · **Keep these papers on your phone** / "They open even without internet. Room maps stay online only." · **Save to this device** (full width under the text on phones) |
+| Not saved | PhoneSave tile · **Keep these papers on your phone** · **Save to this device** (full width under the text on phones) |
 | Saving | Button reads "Saving…" and is disabled |
 | Saved | Green PhoneCheck tile (pops in) · **Saved on this device** / "Last updated 3 Nov, 6:00 PM" · **Remove** |
 | 5 already saved | "5 numbers are saved on this device. Remove one to save this one." |
 | Save failed | `ERROR_COPY` heading and message under the strip, as an alert |
 
 Remove deletes the copy at once, without a confirmation, since saving again is one tap.
+
+### Room and seat on phones
+
+On each paper card, room and seat are what a student looks for first, so below 40rem they are larger pills (`.place-chip`: 15 px bold ink on the surface colour, a stronger border, brand-coloured icons). From 40rem up they return to the normal chip size.
+
+### When the browser's install features fail
+
+`src/client/install-prompt.ts` wraps every install API:
+- `beforeinstallprompt` without a usable `prompt()`;
+- `prompt()` or `userChoice` rejecting;
+- `getInstalledRelatedApps` missing, throwing or rejecting;
+- being started twice.
+
+A failure only ever means "cannot prompt" or "not known to be installed". The button stays, and a failed **Install youwho** turns the sheet into the manual steps. Nothing about the failure is shown or logged.
+
+### Analytics flag (not part of the offline work, shipped with it)
+
+`ANALYTICS_ENABLED` (web, `true`/`false`, default `false`) gates Vercel Web Analytics in the layout. Set it to `true` for Production only, so previews and local runs send no page views.
 
 ## 8. Errors
 
@@ -185,16 +205,16 @@ These restate the bar the repo already meets. The phase is not done until all of
 
 ### UI and UX quality
 
-- Premium, not bolted on: the ribbon, sheet and save strip use the existing tokens, radii, shadows, `.btn` and `.card` styles and the inline icon set. They are checked in Sand, Day and Dusk.
+- Premium, not bolted on: the Install app button, sheet and save strip use the existing tokens, radii, shadows, `.btn` and `.card` styles and the inline icon set. They are checked in both themes, Sand and Dusk.
 - Every new surface has considered motion (drop, sweep, sheet slide or pop, save pop), and none of it runs under `prefers-reduced-motion`.
-- No layout shift: the ribbon's space comes with the server HTML, and the save strip exists only inside the app, where it eases in.
+- No layout shift: the Install app button comes with the server HTML, and the save strip exists only inside the app, where it eases in.
 - Copy is short and literal. Times are in `Asia/Karachi` via `fmtStamp` ("3 Nov, 6:00 PM", never split across lines).
-- 360 px: ribbon on one line, no horizontal scroll. Desktop: no ribbon.
+- 360 px: Home and Install app share one row, no horizontal scroll. Desktop: no Install app button.
 
 ### Performance
 
 - Lighthouse (mobile, production build) stays at 100 accessibility and at least 99 performance on home, papers, department and room.
-- Home JavaScript grows by under 2 KB gzipped. Always loaded: `AppShell` and the install-event store. Lazy: the ribbon's sheet, the save control, `saved.ts` (in the app only).
+- Home JavaScript grows by under 2 KB gzipped. Always loaded: `AppShell` and the install-event store. Lazy: the install sheet, the save control, `saved.ts` (in the app only).
 - The worker registers after `load`; pages it does not handle take the same network path as before.
 - A saved copy paints from the phone without waiting for the network.
 - One `GET /api/lookup?refresh=1` per open of a saved copy; no polling.
@@ -217,10 +237,10 @@ These restate the bar the repo already meets. The phase is not done until all of
 
 ### Accessibility
 
-- The ribbon is a labelled region. The band is a button with `aria-haspopup="dialog"`; × is "Hide this suggestion"; neither takes focus by itself.
+- Install app is a button with `aria-haspopup="dialog"`; its border light is decoration only and never takes focus.
 - The sheet is a Radix Dialog: focus is trapped and returned, it has a title and description, and steps are an ordered list.
 - The save strip is a polite live region; a failed save is `role="alert"`.
-- Targets are at least 44 px (ribbon band and ×, sheet buttons, save strip buttons). Text meets WCAG AA in all three themes.
+- Targets are at least 44 px (sheet buttons, save strip buttons; Install app sits in the same 36 px row as Home). Text meets WCAG AA in Sand and Dusk.
 
 ### Privacy and security
 
@@ -238,7 +258,7 @@ These restate the bar the repo already meets. The phase is not done until all of
 | Area | Files |
 | --- | --- |
 | App shell | `app/manifest.ts`, `app/apple-icon.png`, `public/icons/*`, `app/layout.tsx` (metadata, `AppShell`), `src/ui/app-shell.tsx`, `proxy.ts`, `next.config.ts` |
-| Ribbon | `src/server/install.ts`, `src/ui/install-ribbon.tsx`, `src/ui/install-sheet.tsx`, `src/client/install-prompt.ts`, `src/client/app-mode.ts` |
+| Install | `src/server/install.ts`, `src/ui/install-button.tsx`, `src/ui/install-sheet.tsx`, `src/client/install-prompt.ts`, `src/client/app-mode.ts` |
 | Saving | `src/client/saved.ts`, `src/ui/save-gate.tsx`, `src/ui/save-papers.tsx`, `src/ui/saved-view.tsx`, `app/saved/page.tsx`, `public/sw.js`, `src/site-status.ts` |
 | Shared | `src/ui/paper-list.tsx` (moved from the papers page), `src/ui/source-notice.tsx` (`actions`), `src/ui/roll-form.tsx`, `src/ui/format.ts` (`fmtStamp`), `src/ui/icons.tsx`, `app/globals.css` |
 | API and errors | `src/server/schemas.ts`, `app/api/lookup/route.ts`, `packages/errors/src/envelope.ts`, `src/client/api-fetch.ts`, `src/ui/error-copy.ts`, `eslint.config.js` |
@@ -247,12 +267,12 @@ These restate the bar the repo already meets. The phase is not done until all of
 
 Use a production build (`next build && next start`, or a Vercel preview). Items 1, 2 and 5–8 need real phones.
 
-1. Android Chrome: ribbon on the papers page, no Chrome bottom bar; the sheet's Install opens the system dialog; the app opens full screen with the chair icon.
-2. iPhone Safari: the ribbon's sheet shows the three Share steps; after adding, the app opens full screen and the ribbon is gone inside it.
-3. × hides the ribbon after reload (cookie). There is no ribbon on desktop, on home, department or room pages, or inside the app.
+1. Android Chrome: Install app beside Home with its one-lap border light, no Chrome bottom bar; the sheet's Install opens the system dialog; the app opens full screen with the chair icon.
+2. iPhone Safari: Install app's sheet shows the three Share steps; after adding, the app opens full screen and the button is gone inside it.
+3. There is no Install app button on desktop, on home, department or room pages, or inside the app. With `prefers-reduced-motion` it shows without the light.
 4. In a browser tab: no worker registered (DevTools → Application), no save strip, `/api/lookup` called only by search.
 5. In the app: save a number, then use airplane mode and reopen the app. The saved papers show with "Last updated …" and nothing else.
-6. Offline, tap a paper: the offline page says room maps need a connection and lists the saved numbers.
+6. Offline, tap a paper: the offline page says room maps need a connection and lists the saved numbers. Tap Try again once back online, or just reconnect: the page reloads to what was asked for.
 7. Back online, open the saved number: no spinner or message; "Last updated" moves; change the data on the server (re-seed) and the papers update in place.
 8. Offline, search a saved number from home: it opens. Search an unsaved one: "No connection".
 9. Remove: the strip returns to Save; offline the number is no longer listed.
@@ -260,13 +280,12 @@ Use a production build (`next build && next start`, or a Vercel preview). Items 
 11. Rebuild, open a saved number online, then go offline: the offline page still loads.
 12. Kill switch: `OFFLINE_ENABLED = false` and `RETIRED = true`, rebuild, open the app online: the worker and `yw-*` caches are gone.
 13. Lighthouse on home, papers and room: scores as in section 9.
-14. 360 px and desktop in Sand, Day and Dusk: ribbon, sheet and save strip fit without horizontal scroll.
+14. 360 px and desktop in Sand and Dusk: Install app, sheet and save strip fit without horizontal scroll.
 
 Checked during the build (Playwright, emulated phones and an emulated installed app):
-- the ribbon on iPhone and Android in all three themes, at 360 px with no horizontal scroll;
+- the Install app button's border light and shimmer in Sand and Dusk, at 360 px with no horizontal scroll;
 - the sheet;
-- close and the cookie;
-- no ribbon on desktop;
+- no Install app button on desktop;
 - save, with the worker registered and 17 shell files cached;
 - offline open of a saved number, the offline list, and a list link opening the copy;
 - offline home search;

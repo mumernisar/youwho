@@ -11,6 +11,6 @@ export const NOTICE_PATH = '/decommissioned';
 /**
  * Saved papers in the installed app (service worker + Save to this device). Set to false, together
  * with RETIRED = true in public/sw.js, and deploy to remove the worker and every saved copy from
- * phones on their next visit. The install ribbon also stops.
+ * phones on their next visit. The Install app button also goes.
  */
 export const OFFLINE_ENABLED = true;

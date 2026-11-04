@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getSaved, listSaved, refreshSaved, removeSaved, SAVED_FORMAT, type SavedCopy } from '@/client/saved';
 import { fmtStamp } from './format';
-import { ArrowRight, PhoneSave } from './icons';
+import { ArrowRight, PhoneSave, Refresh } from './icons';
 import { PageNav } from './page-nav';
 import { initials } from './palette';
 import { PaperList, StudentHeader } from './paper-list';
@@ -31,7 +31,10 @@ export function SavedView() {
     let live = true;
     const showList = async () => {
       const copies = await listSaved();
-      if (live) setState({ kind: 'list', copies, offline: !navigator.onLine });
+      if (!live) return;
+      setState({ kind: 'list', copies, offline: !navigator.onLine });
+      // The worker shows this list when a page could not load; once the connection is back, load that page.
+      window.addEventListener('online', () => window.location.reload(), { once: true });
     };
     const m = PAPERS.exec(window.location.pathname);
     const reg = m ? decodeURIComponent(m[1]!) : null;
@@ -104,6 +107,12 @@ function SavedList({ copies, offline }: { copies: SavedCopy[]; offline: boolean 
         <p className="mt-1 text-muted">
           {offline ? 'Search and room maps need a connection. Papers you saved still open.' : 'These papers open even without internet.'}
         </p>
+        {offline && (
+          <button type="button" onClick={() => window.location.reload()} className="btn btn-secondary mt-4">
+            <Refresh className="h-4 w-4" />
+            Try again
+          </button>
+        )}
         {copies.length > 0 ? (
           <ul className="mt-5 space-y-2">
             {copies.map((c) => (

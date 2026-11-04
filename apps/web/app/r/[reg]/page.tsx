@@ -2,11 +2,11 @@ import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { normalizeReg } from '@youwho/core';
 import { getServices } from '@/server/services';
-import { showInstallRibbon } from '@/server/install';
+import { showInstallButton } from '@/server/install';
 import { viewerHash } from '@/server/voter';
 import { loadPage } from '@/server/page-data';
 import { ErrorState } from '@/ui/error-state';
-import { InstallRibbon } from '@/ui/install-ribbon';
+import { InstallButton } from '@/ui/install-button';
 import { PageNav } from '@/ui/page-nav';
 import { PaperList, StudentHeader } from '@/ui/paper-list';
 import { SaveGate } from '@/ui/save-gate';
@@ -20,7 +20,7 @@ export default async function Papers({ params }: { params: Promise<{ reg: string
   if (canonical && canonical !== raw) redirect(`/r/${canonical}`);
 
   const s = getServices();
-  const [res, ribbon] = await Promise.all([loadPage(async () => s.lookup.lookup(raw, await viewerHash(s))), showInstallRibbon()]);
+  const [res, install] = await Promise.all([loadPage(async () => s.lookup.lookup(raw, await viewerHash(s))), showInstallButton()]);
   if (!res.ok) {
     return (
       <>
@@ -33,8 +33,11 @@ export default async function Papers({ params }: { params: Promise<{ reg: string
 
   return (
     <article>
-      {ribbon && <InstallRibbon />}
-      <PageNav back={{ href: '/', label: 'Home' }} crumbs={[{ href: '/', label: 'Home' }, { label: view.reg }]} />
+      <PageNav
+        back={{ href: '/', label: 'Home' }}
+        crumbs={[{ href: '/', label: 'Home' }, { label: view.reg }]}
+        aside={install && <InstallButton />}
+      />
       <StudentHeader view={view}>
         <SaveGate reg={view.reg} />
       </StudentHeader>

@@ -37,8 +37,8 @@ function PaperCard({ p, slug, reg, hue }: { p: PaperView; slug: string; reg: str
           </span>
         </span>
         <span className="flex flex-wrap gap-2 sm:flex-col sm:items-end">
-          <span className="chip font-semibold text-ink"><Door className="h-3.5 w-3.5" />{clash ? 'Clash Room' : `Room ${p.room}`}</span>
-          <span className="chip font-semibold text-ink"><Chair className="h-3.5 w-3.5" />{seatText(p.position)}</span>
+          <span className="chip place-chip"><Door className="place-icon" />{clash ? 'Clash Room' : `Room ${p.room}`}</span>
+          <span className="chip place-chip"><Chair className="place-icon" />{seatText(p.position)}</span>
         </span>
         <span className="flex items-center justify-between gap-2 border-t border-line pt-3 text-sm font-semibold text-brand sm:border-0 sm:pt-0">
           <span className="sm:sr-only">View room map</span>

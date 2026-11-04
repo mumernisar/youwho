@@ -85,10 +85,7 @@ export function SavePapers({ reg }: { reg: string }) {
       ) : (
         <div className="save-strip save-strip-offer">
           <span className="save-icon"><PhoneSave className="h-5 w-5" /></span>
-          <p className="min-w-0 flex-1">
-            <span className="block font-semibold">Keep these papers on your phone</span>
-            <span className="block text-sm text-muted">They open even without internet. Room maps stay online only.</span>
-          </p>
+          <p className="min-w-0 flex-1 font-semibold">Keep these papers on your phone</p>
           <button type="button" onClick={save} disabled={state.kind === 'saving'} className="btn btn-primary btn-sm save-btn">
             {state.kind === 'saving' ? 'Saving…' : 'Save to this device'}
           </button>

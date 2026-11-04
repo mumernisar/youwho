@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { APP_COOKIE, isStandalone } from '@/client/app-mode';
+import { isStandalone } from '@/client/app-mode';
 import { captureInstallPrompt } from '@/client/install-prompt';
 import { clearOffline } from '@/client/saved';
 import { OFFLINE_ENABLED } from '../site-status';
@@ -13,9 +13,9 @@ async function retire(): Promise<void> {
 }
 
 /**
- * Renders nothing. In a browser tab it only keeps the install event for the ribbon. In the
- * installed app it marks the app with a cookie and registers the service worker after load, so
- * the worker never competes with the first render.
+ * Renders nothing. In a browser tab it keeps the install event for the install sheet and asks whether the
+ * app is installed. In the installed app it registers the service worker after load, so the worker
+ * never competes with the first render.
  */
 export function AppShell() {
   useEffect(() => {
@@ -25,7 +25,6 @@ export function AppShell() {
     }
     captureInstallPrompt();
     if (!isStandalone() || !('serviceWorker' in navigator)) return;
-    document.cookie = `${APP_COOKIE}=1; Path=/; Max-Age=31536000; SameSite=Lax`;
     // A failed registration only means no offline copy; the site works the same.
     const register = () => void navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => undefined);
     if (document.readyState === 'complete') register();
