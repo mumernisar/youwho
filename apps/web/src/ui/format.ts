@@ -24,6 +24,14 @@ export function fmtUpdated(iso: string): string {
   return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: TZ }).format(new Date(iso));
 }
 
+/** "3 Nov, 6:00 PM" for an instant, in Karachi time. */
+export function fmtStamp(iso: string): string {
+  const d = new Date(iso);
+  const day = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', timeZone: TZ }).format(d);
+  const time = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: TZ }).format(d);
+  return `${day}, ${time}`;
+}
+
 export const sourceHost = (url: string): string => url.replace(/^https?:\/\//, '');
 
 export const count = (n: number): string => n.toLocaleString('en');

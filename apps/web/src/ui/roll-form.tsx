@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch, ClientError } from '@/client/api-fetch';
+import { isStandalone } from '@/client/app-mode';
 import { formatRegInput } from './format';
 import { ERROR_COPY } from './error-copy';
 import { ArrowRight, Search } from './icons';
@@ -30,6 +31,15 @@ export function RollForm() {
     if (busy) return;
     setBusy(true);
     setError(null);
+    // In the installed app a saved number opens from the phone: a full navigation, so the service
+    // worker can answer it, with or without a connection. Loaded only in the app.
+    if (isStandalone()) {
+      const reg = await import('@/client/saved').then((m) => m.savedRegFor(value));
+      if (reg) {
+        window.location.assign(`/r/${reg}`);
+        return;
+      }
+    }
     try {
       const res = await apiFetch<{ reg: string }>(`/api/lookup?reg=${encodeURIComponent(value)}`);
       try {

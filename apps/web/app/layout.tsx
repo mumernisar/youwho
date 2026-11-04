@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { IBM_Plex_Mono, Inter } from 'next/font/google';
 import { getServices } from '@/server/services';
 import { AddDepartmentProvider } from '@/ui/add-department';
+import { AppShell } from '@/ui/app-shell';
 import { Analytics } from '@/ui/analytics';
 import { Header } from '@/ui/header';
 import { OfflineBar } from '@/ui/offline-bar';
@@ -15,6 +16,8 @@ const mono = IBM_Plex_Mono({ subsets: ['latin'], weight: ['400', '500', '600'], 
 export const metadata: Metadata = {
   title: { default: 'Youuwho - Trick or treat', template: '%s · Youuwho' },
   description: 'See who is sitting around you in the exam room.',
+  // Home-screen app on iPhone: full screen, named youwho under the icon.
+  appleWebApp: { capable: true, title: 'youwho', statusBarStyle: 'default' },
 };
 
 // Pinch-zoom stays enabled.
@@ -36,6 +39,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <main className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6">{children}</main>
         </AddDepartmentProvider>
         <Analytics />
+        <AppShell />
       </body>
     </html>
   );

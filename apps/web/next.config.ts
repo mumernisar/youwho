@@ -6,6 +6,8 @@ const config: NextConfig = {
   serverExternalPackages: ['postgres', 'pino'],
   poweredByHeader: false,
   agentRules: false,
+  // The service worker must never be cached, so a fix (or the kill switch) reaches phones on their next visit.
+  headers: async () => [{ source: '/sw.js', headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }] }],
 };
 
 export default config;
