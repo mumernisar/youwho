@@ -48,7 +48,9 @@ export default async function Home() {
         </div>
       </section>
 
-      <section aria-label="How it works" className="-mt-8 grid gap-3 sm:grid-cols-3">
+      <SpecialCredits repoUrl={s.github.url} />
+
+      <section aria-label="How it works" className="mt-14 grid gap-3 sm:grid-cols-3">
         {STEPS.map(({ icon: Icon, title, text }) => (
           <div key={title} className="card flex items-start gap-3 p-4">
             <span className="grid h-10 w-10 flex-none place-items-center rounded-xl bg-brand-soft text-brand">
@@ -116,8 +118,6 @@ export default async function Home() {
           </ul>
         )}
       </section>
-
-      <SpecialCredits repoUrl={s.github.url} />
     </>
   );
 }

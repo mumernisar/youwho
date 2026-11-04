@@ -21,11 +21,6 @@ const T = (dur: number, delay = 0, extra: Css = {}) => ({ '--dur': `${dur}s`, '-
 const rad = (d: number) => (d * Math.PI) / 180;
 const f = (n: number) => Math.round(n * 100) / 100;
 const pt = (r: number, deg: number, cx = 50, cy = 50): [number, number] => [f(cx + r * Math.cos(rad(deg))), f(cy + r * Math.sin(rad(deg)))];
-const sector = (r: number, a0: number, a1: number) => {
-  const [x0, y0] = pt(r, a0);
-  const [x1, y1] = pt(r, a1);
-  return `M50 50 L${x0} ${y0} A${r} ${r} 0 0 1 ${x1} ${y1} Z`;
-};
 const poly = (r: number, start: number, n: number, cx = 50, cy = 50) =>
   Array.from({ length: n }, (_, i) => `${i ? 'L' : 'M'}${pt(r, start + (360 / n) * i, cx, cy).join(' ')}`).join(' ') + ' Z';
 const star = (cx: number, cy: number, R: number, r: number) =>
@@ -59,20 +54,52 @@ function Halo({ id, u, r = 48, a = 0.85 }: { id: SpecialId; u: string; r?: numbe
 }
 
 /**
- * A comet on a closed cubic Bezier curve: a head and a tail of smaller dots, each started a little
- * earlier than the next. With reduced motion CSS hides the moving dots and shows one still dot on the curve.
+ * An orbit like a planet's: an ellipse with the seat at one focus, walked at Kepler's pace (Kepler's
+ * equation solved here), so it is fast where the path passes close to the seat and slow where it is far.
+ * `tilt` turns the ellipse about the seat; `dir` is 1 for clockwise and -1 for the other way. `values` is
+ * the position at equal steps of time, for animateMotion with calcMode="linear"; `path` is the same curve
+ * for the dotted trace; `start` is the closest point to the seat.
  */
-function Comet({ path, start, dur, colors, ring, trace }: { path: string; start: [number, number]; dur: number; colors: string[]; ring: string; trace: string }) {
+function orbit(a: number, e: number, tilt: number, dir: 1 | -1) {
+  const b = a * Math.sqrt(1 - e * e);
+  const cos = Math.cos(rad(tilt));
+  const sin = Math.sin(rad(tilt));
+  const at = (E: number): [number, number] => {
+    const x = a * (Math.cos(E) - e);
+    const y = dir * b * Math.sin(E);
+    return [f(50 + x * cos - y * sin), f(50 + x * sin + y * cos)];
+  };
+  const steps = 72;
+  const timed = Array.from({ length: steps + 1 }, (_, i) => {
+    const M = (2 * Math.PI * i) / steps;
+    let E = M;
+    for (let k = 0; k < 24; k++) E = M + e * Math.sin(E);
+    return at(E);
+  });
+  const shape = Array.from({ length: 64 }, (_, i) => at((2 * Math.PI * i) / 64));
+  return {
+    values: timed.map((q) => q.join(',')).join(';'),
+    path: shape.map((q, i) => `${i ? 'L' : 'M'}${q.join(' ')}`).join(' ') + 'Z',
+    start: timed[0]!,
+  };
+}
+type Orbit = ReturnType<typeof orbit>;
+
+/**
+ * A comet on an orbit: a head and a tail of smaller dots, each started a little earlier than the next.
+ * With reduced motion CSS hides the moving dots and shows one still dot on the curve.
+ */
+function Comet({ orb, dur, colors, ring, trace }: { orb: Orbit; dur: number; colors: string[]; ring: string; trace: string }) {
   const radii = [3.4, 2.7, 2.1, 1.6, 1.15];
   return (
     <g className="fx-orbit">
-      <path d={path} fill="none" style={{ stroke: trace }} strokeWidth=".7" strokeDasharray="1.2 3.2" strokeLinecap="round" opacity=".55" />
-      <circle className="fx-orbit-still" cx={start[0]} cy={start[1]} r={radii[0]} style={{ fill: colors[0], stroke: ring }} strokeWidth=".9" />
+      <path d={orb.path} fill="none" style={{ stroke: trace }} strokeWidth=".7" strokeDasharray="1.2 3.2" strokeLinecap="round" opacity=".55" />
+      <circle className="fx-orbit-still" cx={orb.start[0]} cy={orb.start[1]} r={radii[0]} style={{ fill: colors[0], stroke: ring }} strokeWidth=".9" />
       {[...radii].reverse().map((r, k) => {
         const i = radii.length - 1 - k;
         return (
           <circle key={i} className="fx-orbit-live" r={r} style={{ fill: colors[i] ?? colors[colors.length - 1], stroke: i === 0 ? ring : 'none' }} strokeWidth=".9" opacity={1 - i * 0.16}>
-            <animateMotion dur={`${dur}s`} begin={`${-(radii.length - 1 - i) * 0.17}s`} repeatCount="indefinite" path={path} />
+            <animateMotion dur={`${dur}s`} begin={`${-(radii.length - 1 - i) * 0.17}s`} repeatCount="indefinite" calcMode="linear" values={orb.values} />
           </circle>
         );
       })}
@@ -80,10 +107,14 @@ function Comet({ path, start, dur, colors, ring, trace }: { path: string; start:
   );
 }
 
+/** The two comets' orbits: the same shape, turned and run in opposite directions. */
+const ORBIT_118 = orbit(33.5, 0.4, -30, 1);
+const ORBIT_077 = orbit(33.5, 0.4, 150, -1);
+
 /* ----------------------------------------------------------------------------------------------
  * 118 — the owner. A sunburst with two turning rings behind the seat; on it a crowned crest made of
- * the app's own mark (nine seats, the middle one lit), swept by light; a comet on an egg-shaped
- * Bezier loop.
+ * the app's own mark (nine seats, the middle one lit), swept by light; a comet on an elliptical
+ * orbit around the seat.
  * ------------------------------------------------------------------------------------------- */
 const Back118: Layer = ({ u }) => {
   const id = '118';
@@ -151,9 +182,8 @@ const Front118: Layer = ({ u }) => {
       <g transform="translate(17 72) scale(.55)"><path className="fx-twinkle" d={SPARK} style={{ ...fill(id, 'b'), ...stroke(id, 'a'), ...T(2.4, -1.6) }} strokeWidth=".6" /></g>
       <g transform="translate(85 76) scale(.8)"><path className="fx-twinkle" d={SPARK} style={{ ...fill(id, 'b'), ...stroke(id, 'a'), ...T(2.4, -0.4) }} strokeWidth=".6" /></g>
       <Comet
-        path="M50 5 C79 2 98 28 90 52 C84 76 66 97 42 93 C16 89 3 66 11 42 C18 18 34 8 50 5Z"
-        start={[50, 5]}
-        dur={7.5}
+        orb={ORBIT_118}
+        dur={9}
         colors={[c(id, 'b'), c(id, 'a'), c(id, 'a'), c(id, 'a'), c(id, 'a')]}
         ring={c(id, 'c')}
         trace={c(id, 'a')}
@@ -164,8 +194,8 @@ const Front118: Layer = ({ u }) => {
 
 /* ----------------------------------------------------------------------------------------------
  * 077 — gold, crimson and black. Flames that never settle behind the seat, a marching two-colour
- * rim, embers rising, a spinning four-point spark on the cushion and a comet on a squircle loop that
- * runs the other way.
+ * rim, embers rising, a spinning four-point spark on the cushion and a comet on an elliptical orbit
+ * that runs the other way.
  * ------------------------------------------------------------------------------------------- */
 const flame = (h: number, w: number) => `M0 0 C${-w} ${f(-h * 0.3)} ${f(-w * 0.9)} ${f(-h * 0.72)} 0 ${-h} C${f(w * 0.9)} ${f(-h * 0.72)} ${w} ${f(-h * 0.3)} 0 0Z`;
 const FLAMES: [number, number, number, number, number][] = [
@@ -234,9 +264,8 @@ const Front077: Layer = ({ u }) => {
         <path d="M50 41 L54 46 L50 51 L46 46Z" style={fill(id, 'b')} />
       </g>
       <Comet
-        path="M50 4 C18 4 5 18 5 50 C5 82 18 96 50 96 C82 96 95 82 95 50 C95 18 82 4 50 4Z"
-        start={[50, 4]}
-        dur={6.4}
+        orb={ORBIT_077}
+        dur={8}
         colors={[c(id, 'd'), c(id, 'a'), c(id, 'b'), c(id, 'b'), c(id, 'c')]}
         ring={c(id, 'c')}
         trace={c(id, 'b')}
@@ -246,48 +275,24 @@ const Front077: Layer = ({ u }) => {
 };
 
 /* ----------------------------------------------------------------------------------------------
- * 073 — cobalt. A radar: a sweep with a fading wake turns behind the seat, rings leave it, corner
- * brackets lock on, and three blips light as the sweep passes them.
+ * 073 — cobalt. A soft glow, two slow rings that spread out from the seat and a dotted ring turning
+ * round it.
  * ------------------------------------------------------------------------------------------- */
 const Back073: Layer = ({ u }) => {
   const id = '073';
   return (
     <>
-      <Halo id={id} u={u} a={0.8} />
-      {[0, -1.1, -2.2].map((d) => (
-        <rect key={d} className="fx-ripple" x="30" y="30" width="40" height="40" rx="11" fill="none" style={{ ...stroke(id, 'a'), ...T(3.3, d) }} strokeWidth="2.4" vectorEffect="non-scaling-stroke" />
+      <Halo id={id} u={u} a={0.7} />
+      {[0, -2.2].map((d) => (
+        <rect key={d} className="fx-ripple" x="30" y="30" width="40" height="40" rx="11" fill="none" style={{ ...stroke(id, 'a'), ...T(4.4, d) }} strokeWidth="2" vectorEffect="non-scaling-stroke" />
       ))}
-      <g className="fx-spin" style={T(5)}>
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <path key={i} d={sector(46, -9 * (i + 1), -9 * i)} style={fill(id, 'a', 0.78 - i * 0.12)} />
-        ))}
-        <path d="M50 50 L96 50" style={stroke(id, 'a')} strokeWidth="1.3" strokeLinecap="round" />
-      </g>
-      <circle cx="50" cy="50" r="46" fill="none" style={stroke(id, 'a')} strokeWidth=".7" strokeDasharray="1 3" opacity=".6" />
+      <circle className="fx-spin" cx="50" cy="50" r="44" fill="none" style={{ ...stroke(id, 'a'), ...T(60) }} strokeWidth="1" strokeDasharray="1 3.4" strokeLinecap="round" opacity=".7" />
+      <rect className="fx-breathe" x="29.4" y="29.4" width="41.2" height="41.2" rx="11.5" fill="none" style={{ ...stroke(id, 'a'), ...T(3.2) }} strokeWidth="1.5" />
     </>
   );
 };
 
-const Front073: Layer = () => {
-  const id = '073';
-  const brackets = ['M28 36 V28 H36', 'M64 28 H72 V36', 'M72 64 V72 H64', 'M36 72 H28 V64'];
-  return (
-    <>
-      <g className="fx-lock" style={T(2.4)}>
-        {brackets.map((d) => (
-          <path key={d} d={d} fill="none" style={stroke(id, 'c')} strokeWidth="3.6" strokeLinecap="round" strokeLinejoin="round" />
-        ))}
-        {brackets.map((d) => (
-          <path key={d} d={d} fill="none" style={stroke(id, 'b')} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-        ))}
-      </g>
-      {[200, 320, 70].map((deg) => {
-        const [x, y] = pt(37, deg);
-        return <circle key={deg} className="fx-blip" cx={x} cy={y} r="2.3" style={{ ...fill(id, 'b'), ...stroke(id, 'a'), ...T(5, deg / 72 - 5) }} strokeWidth=".8" />;
-      })}
-    </>
-  );
-};
+const Front073: Layer = () => <></>;
 
 /* ----------------------------------------------------------------------------------------------
  * 092 — emerald. A hexagon ring with a pulse running round it, a second one the other way, and a node
@@ -322,30 +327,17 @@ const Front092: Layer = () => {
 };
 
 /* ----------------------------------------------------------------------------------------------
- * 127 — rose. A compass rose of eight petals turning slowly behind the seat, a dotted ring, and
+ * 127 — rose. A soft glow, two dotted rings turning slowly in opposite directions and a few small
  * sparkles that open and close at different times.
  * ------------------------------------------------------------------------------------------- */
 const Back127: Layer = ({ u }) => {
   const id = '127';
   return (
     <>
-      <defs>
-        <linearGradient id={`${u}petal`} x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0" style={stop(id, 'b', 0.95)} />
-          <stop offset="1" style={stop(id, 'a', 0.9)} />
-        </linearGradient>
-      </defs>
-      <Halo id={id} u={u} a={0.62} />
-      <g className="fx-spin fx-rev" style={T(46)}>
-        {[0, 90, 180, 270].map((deg) => (
-          <path key={deg} d="M50 50 L54.6 32 L50 5 L45.4 32Z" transform={`rotate(${deg} 50 50)`} fill={`url(#${u}petal)`} style={stroke(id, 'c')} strokeWidth=".8" strokeLinejoin="round" />
-        ))}
-        {[45, 135, 225, 315].map((deg) => (
-          <path key={deg} d="M50 50 L53.8 37 L50 14 L46.2 37Z" transform={`rotate(${deg} 50 50)`} fill={`url(#${u}petal)`} style={stroke(id, 'c')} strokeWidth=".7" strokeLinejoin="round" opacity=".92" />
-        ))}
-      </g>
-      <circle className="fx-spin" cx="50" cy="50" r="43" fill="none" style={{ ...stroke(id, 'a'), ...T(34) }} strokeWidth="1.2" strokeDasharray="0.1 3.6" strokeLinecap="round" />
-      <rect className="fx-breathe" x="29.4" y="29.4" width="41.2" height="41.2" rx="11.5" fill="none" style={{ ...stroke(id, 'a'), ...T(2.4) }} strokeWidth="1.7" />
+      <Halo id={id} u={u} a={0.7} />
+      <circle className="fx-spin" cx="50" cy="50" r="44" fill="none" style={{ ...stroke(id, 'a'), ...T(50) }} strokeWidth="1.2" strokeDasharray="0.1 3.6" strokeLinecap="round" />
+      <circle className="fx-spin fx-rev" cx="50" cy="50" r="38" fill="none" style={{ ...stroke(id, 'a'), ...T(70) }} strokeWidth=".8" strokeDasharray="5 5" opacity=".7" />
+      <rect className="fx-breathe" x="29.4" y="29.4" width="41.2" height="41.2" rx="11.5" fill="none" style={{ ...stroke(id, 'a'), ...T(3) }} strokeWidth="1.5" />
     </>
   );
 };
@@ -353,18 +345,16 @@ const Back127: Layer = ({ u }) => {
 const Front127: Layer = () => {
   const id = '127';
   const sparks: [number, number, number, number][] = [
-    [20, 26, 1.1, 0],
-    [80, 24, 0.85, -0.7],
-    [13, 64, 0.8, -1.4],
-    [87, 68, 1.2, -0.35],
-    [50, 94, 0.9, -1.1],
-    [50, 46, 1.35, -1.8],
+    [20, 26, 0.9, 0],
+    [80, 24, 0.7, -0.9],
+    [13, 66, 0.65, -1.8],
+    [87, 70, 0.9, -1.3],
   ];
   return (
     <>
       {sparks.map(([x, y, s, d], i) => (
         <g key={i} transform={`translate(${x} ${y}) scale(${s})`}>
-          <path className="fx-twinkle" d={SPARK} style={{ ...fill(id, 'b'), ...stroke(id, i === 5 ? 'c' : 'a'), ...T(2.6, d) }} strokeWidth=".6" />
+          <path className="fx-twinkle" d={SPARK} style={{ ...fill(id, 'b'), ...stroke(id, 'a'), ...T(3.2, d) }} strokeWidth=".6" />
         </g>
       ))}
     </>

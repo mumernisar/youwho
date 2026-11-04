@@ -12,7 +12,7 @@ function Person({ p, skip }: { p: SpecialPerson; skip: SpecialRole }) {
         <p className="font-mono text-xs text-muted">{p.reg}</p>
       </div>
       {others.map((r) => (
-        <span key={r} className="fx-role">{ROLE_LABEL[r]}</span>
+        <span key={r} className="fx-role" data-role={r}>{ROLE_LABEL[r]}</span>
       ))}
     </li>
   );
@@ -50,14 +50,9 @@ export function SpecialCredits({ repoUrl }: { repoUrl: string }) {
       <div className="fx-owner-card" data-fx={owner.id}>
         <Emblem id={owner.id} />
         <div className="min-w-0 flex-1">
-          <p className="eyebrow">{ROLE_LABEL.owner}</p>
+          <span className="fx-role" data-role="owner">{ROLE_LABEL.owner}</span>
           <p className="mt-0.5 text-2xl font-extrabold tracking-tight">{owner.name}</p>
           <p className="font-mono text-sm text-muted">{owner.reg}</p>
-          <p className="mt-2 flex flex-wrap gap-1.5">
-            {owner.roles.slice(1).map((r) => (
-              <span key={r} className="fx-role">{ROLE_LABEL[r]}</span>
-            ))}
-          </p>
         </div>
       </div>
 

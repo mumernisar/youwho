@@ -62,7 +62,7 @@ export function SeatPopover({
                   {seat.special && (
                     <p data-fx={seat.special} className="mt-1.5 flex flex-wrap gap-1.5">
                       {specialById(seat.special).roles.map((r) => (
-                        <span key={r} className="fx-role">{ROLE_LABEL[r]}</span>
+                        <span key={r} className="fx-role" data-role={r}>{ROLE_LABEL[r]}</span>
                       ))}
                     </p>
                   )}

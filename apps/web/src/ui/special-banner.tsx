@@ -169,7 +169,7 @@ export function SpecialStage({ people, where }: { people: Present[]; where: 'roo
                   <p className="fx-person-name">{who.name}</p>
                   <p className="fx-person-roles">
                     {who.roles.map((r) => (
-                      <span key={r} className="fx-role">{ROLE_LABEL[r]}</span>
+                      <span key={r} className="fx-role" data-role={r}>{ROLE_LABEL[r]}</span>
                     ))}
                   </p>
                 </div>
